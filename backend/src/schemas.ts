@@ -57,3 +57,28 @@ export const createLabelSchema = z.object({
 export const updateLabelSchema = createLabelSchema.partial();
 export type CreateLabelInput = z.infer<typeof createLabelSchema>;
 export type UpdateLabelInput = z.infer<typeof updateLabelSchema>;
+
+export const updateShelfSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().max(5000).nullish(),
+});
+export type UpdateShelfInput = z.infer<typeof updateShelfSchema>;
+
+export const createBookSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(5000).nullish(),
+  color: HEX.default("#8A8A86"),
+});
+export const updateBookSchema = createBookSchema.partial();
+export type CreateBookInput = z.infer<typeof createBookSchema>;
+export type UpdateBookInput = z.infer<typeof updateBookSchema>;
+
+export const createPageSchema = z.object({
+  title: z.string().min(1).max(300),
+});
+export const updatePageSchema = z.object({
+  title: z.string().min(1).max(300).optional(),
+  content: z.string().max(500000).optional(),
+});
+export type CreatePageInput = z.infer<typeof createPageSchema>;
+export type UpdatePageInput = z.infer<typeof updatePageSchema>;
