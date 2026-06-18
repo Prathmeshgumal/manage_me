@@ -10,11 +10,13 @@ import { CommandPalette } from "@/components/command/CommandPalette";
 import { HotCornerCalendar } from "@/components/HotCornerCalendar";
 import { MyGithubPage } from "@/pages/MyGithubPage";
 import { ProjectSettingsPage } from "@/pages/ProjectSettingsPage";
+import { LibraryRail } from "@/components/library/LibraryRail";
+import { LibraryPage } from "@/pages/LibraryPage";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTasks } from "@/hooks/useTasks";
 import type { DueBucket } from "@/lib/dueDate";
 
-type Page = "tasks" | "my-github" | "project-settings";
+type Page = "tasks" | "my-github" | "project-settings" | "library";
 
 export default function App() {
   const [page, setPage] = useState<Page>("tasks");
@@ -22,6 +24,7 @@ export default function App() {
   const [groupBy, setGroupBy] = useState<GroupBy>("status");
   const [dueFilter, setDueFilter] = useState<DueBucket | "ALL">("ALL");
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [libraryTab, setLibraryTab] = useState<"shelves" | "books">("shelves");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => localStorage.getItem("sidebarCollapsed") === "true",
   );
@@ -81,7 +84,7 @@ export default function App() {
         onOpenMyGithub={() => setPage("my-github")}
         onSelectProjectRow={(id) => { setProjectId(id); setPage("tasks"); }}
       />
-      <main className="flex-1 h-screen flex flex-col">
+      <main className="flex-1 h-screen flex flex-col min-w-0">
         {page === "tasks" && (
           <Topbar
             view={view}
@@ -101,6 +104,8 @@ export default function App() {
         <section className="flex-1 overflow-auto p-4">
           {page === "my-github" ? (
             <MyGithubPage />
+          ) : page === "library" && projectId ? (
+            <LibraryPage projectId={projectId} tab={libraryTab} onBack={() => setPage("tasks")} />
           ) : page === "project-settings" && projectId ? (
             <ProjectSettingsPage
               projectId={projectId}
@@ -120,6 +125,10 @@ export default function App() {
           )}
         </section>
       </main>
+
+      {page === "tasks" && projectId && (
+        <LibraryRail onOpen={(t) => { setLibraryTab(t); setPage("library"); }} />
+      )}
 
       <QuickCreateDialog
         open={createOpen}
