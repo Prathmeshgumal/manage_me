@@ -50,28 +50,32 @@ export function LibraryPage({ projectId, tab, initialBookId, onBack }: {
       {nav.level === "shelf" && (
         tab === "shelves" ? (
           <div className="flex flex-col lg:flex-row gap-6 items-stretch h-[74vh]">
-            <div className="flex-1 min-w-0 w-full relative">
-              <button
-                onClick={() => setShowList((s) => !s)}
-                aria-label={showList ? "Hide book list" : "Show book list"}
-                title={showList ? "Hide book list" : "Show book list"}
-                className="absolute top-3 right-3 z-10 rounded-md bg-black/40 text-white/80 hover:text-white hover:bg-black/60 p-1.5"
-              >
-                <ChevronDown className={`size-4 transition-transform ${showList ? "rotate-180" : ""}`} />
-              </button>
-              <BookShelf
-                books={shelf.books}
-                onOpenBook={(id) => setNav({ level: "book", bookId: id })}
-                onAddBook={(name) => createBook.mutate({ shelfId: shelf.id, input: { name, color: randomBookColor() } })}
-              />
+            <div className="flex-1 min-w-0 w-full flex flex-col gap-1.5">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowList((s) => !s)}
+                  aria-label={showList ? "Hide book list" : "Show book list"}
+                  title={showList ? "Hide book list" : "Show book list"}
+                  className="rounded-md border border-border bg-surface text-ink-muted hover:text-ink p-1.5"
+                >
+                  <ChevronDown className={`size-4 transition-transform ${showList ? "rotate-180" : ""}`} />
+                </button>
+              </div>
+              <div className="flex-1 min-h-0">
+                <BookShelf
+                  books={shelf.books}
+                  onOpenBook={(id) => setNav({ level: "book", bookId: id })}
+                  onAddBook={(name) => createBook.mutate({ shelfId: shelf.id, input: { name, color: randomBookColor() } })}
+                />
+              </div>
             </div>
-            {showList && (
-              <div className="flex-1 min-w-0 w-full overflow-auto">
+            <div className="flex-1 min-w-0 w-full overflow-auto">
+              {showList && (
                 <BookList projectId={projectId} shelfId={shelf.id} books={shelf.books}
                   variant="list"
                   onOpenBook={(id) => setNav({ level: "book", bookId: id })} />
-              </div>
-            )}
+              )}
+            </div>
           </div>
         ) : (
           <BookList projectId={projectId} shelfId={shelf.id} books={shelf.books}
