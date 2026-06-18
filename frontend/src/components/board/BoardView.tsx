@@ -1,5 +1,9 @@
-import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import {
+  DndContext, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors,
+  type DragEndEvent, type DragStartEvent,
+} from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import { useState } from "react";
 import type { Task, Status, Priority, TaskFilter, UpdateTaskInput } from "@/types";
 import { useTasks, useUpdateTask } from "@/hooks/useTasks";
 import { STATUS_ORDER, PRIORITY_ORDER, statusMeta, priorityMeta } from "@/lib/priority";
@@ -7,6 +11,7 @@ import {
   DUE_BUCKET_ORDER, dueBucketMeta, dueBucket, bucketAnchorDate, type DueBucket,
 } from "@/lib/dueDate";
 import { Column } from "./Column";
+import { TaskCardView } from "./TaskCard";
 import type { GroupBy } from "@/components/layout/Topbar";
 
 export type CreateDefaults = { status?: Status; priority?: Priority; dueDate?: string };
@@ -20,6 +25,8 @@ export function BoardView({ groupBy, projectId, dueFilter, onOpenTask, onCreateI
   const tasks = dueFilter === "ALL" ? allTasks : allTasks.filter((t) => dueBucket(t.dueDate) === dueFilter);
   const update = useUpdateTask();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const activeTask = activeId ? tasks.find((t) => t.id === activeId) ?? null : null;
 
   const groups: string[] =
     groupBy === "status" ? STATUS_ORDER : groupBy === "priority" ? PRIORITY_ORDER : DUE_BUCKET_ORDER;
@@ -48,11 +55,12 @@ export function BoardView({ groupBy, projectId, dueFilter, onOpenTask, onCreateI
     tasks.filter((t) => groupValue(t) === key).sort((a, b) => a.sortOrder - b.sortOrder);
 
   function onDragEnd(e: DragEndEvent) {
-    const activeId = String(e.active.id);
-    const active = tasks.find((t) => t.id === activeId);
+    setActiveId(null);
+    const draggedId = String(e.active.id);
+    const active = tasks.find((t) => t.id === draggedId);
     if (!active || !e.over) return;
     const overId = String(e.over.id);
-    if (activeId === overId) return;
+    if (draggedId === overId) return;
 
     const overTask = tasks.find((t) => t.id === overId);
     const targetGroup = overTask ? groupValue(overTask) : overId;
@@ -63,18 +71,18 @@ export function BoardView({ groupBy, projectId, dueFilter, onOpenTask, onCreateI
 
     let ordered: string[];
     if (sourceGroup === targetGroup) {
-      const oldIndex = ids.indexOf(activeId);
+      const oldIndex = ids.indexOf(draggedId);
       const newIndex = overTask ? ids.indexOf(overId) : ids.length - 1;
       if (oldIndex === -1 || newIndex === -1) return;
       ordered = arrayMove(ids, oldIndex, newIndex);
     } else {
       const insertAt = overTask ? ids.indexOf(overId) : ids.length;
-      ordered = [...ids.slice(0, insertAt), activeId, ...ids.slice(insertAt)];
+      ordered = [...ids.slice(0, insertAt), draggedId, ...ids.slice(insertAt)];
     }
 
     // New sortOrder = midpoint of the active card's neighbors in the resulting order.
     const byId = new Map(tasks.map((t) => [t.id, t]));
-    const pos = ordered.indexOf(activeId);
+    const pos = ordered.indexOf(draggedId);
     const prevSort = pos > 0 ? byId.get(ordered[pos - 1])!.sortOrder : undefined;
     const nextSort = pos < ordered.length - 1 ? byId.get(ordered[pos + 1])!.sortOrder : undefined;
 
@@ -84,11 +92,17 @@ export function BoardView({ groupBy, projectId, dueFilter, onOpenTask, onCreateI
     else if (nextSort === undefined) sortOrder = prevSort + 1;
     else sortOrder = (prevSort + nextSort) / 2;
 
-    update.mutate({ id: activeId, patch: { ...patchForGroup(targetGroup), sortOrder } });
+    update.mutate({ id: draggedId, patch: { ...patchForGroup(targetGroup), sortOrder } });
   }
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={(e: DragStartEvent) => setActiveId(String(e.active.id))}
+      onDragEnd={onDragEnd}
+      onDragCancel={() => setActiveId(null)}
+    >
       <div className="flex gap-4 h-full">
         {groups.map((key) => {
           const info = colInfo(key);
@@ -105,6 +119,11 @@ export function BoardView({ groupBy, projectId, dueFilter, onOpenTask, onCreateI
           );
         })}
       </div>
+      <DragOverlay>
+        {activeTask ? (
+          <TaskCardView task={activeTask} className="w-72 shadow-xl rotate-2 cursor-grabbing" />
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }
