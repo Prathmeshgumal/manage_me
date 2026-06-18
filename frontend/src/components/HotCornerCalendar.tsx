@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 
 const CORNER = 56;      // px from the bottom-right corner that counts as "the corner"
-const DELAY = 1500;     // ms the cursor must linger before the calendar appears
+const DELAY = 200;      // ms the cursor must linger before the calendar appears
 
 export function HotCornerCalendar() {
   const [open, setOpen] = useState(false);
