@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useShelf, useBook, useDeleteBook } from "@/hooks/useLibrary";
+import { useShelf, useBook, useDeleteBook, useCreateBook } from "@/hooks/useLibrary";
 import { BookList } from "@/components/library/BookList";
 import { BookShelf } from "@/components/library/BookShelf";
 import { PageList } from "@/components/library/PageList";
@@ -14,6 +14,7 @@ export function LibraryPage({ projectId, tab, initialBookId, onBack }: {
 }) {
   const { data: shelf } = useShelf(projectId);
   const deleteBook = useDeleteBook(projectId);
+  const createBook = useCreateBook(projectId);
   const [nav, setNav] = useState<Nav>(
     initialBookId ? { level: "book", bookId: initialBookId } : { level: "shelf" },
   );
@@ -22,7 +23,7 @@ export function LibraryPage({ projectId, tab, initialBookId, onBack }: {
   if (!shelf) return <div className="p-6 text-sm text-ink-muted">Loading library…</div>;
 
   return (
-    <div className="max-w-5xl p-6 flex flex-col gap-6">
+    <div className="max-w-6xl p-6 flex flex-col gap-6">
       <button className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink w-fit" onClick={onBack}>
         <ArrowLeft className="size-4" /> Back to board
       </button>
@@ -46,14 +47,18 @@ export function LibraryPage({ projectId, tab, initialBookId, onBack }: {
 
       {nav.level === "shelf" && (
         tab === "shelves" ? (
-          <div className="flex flex-col lg:flex-row gap-6 items-start">
-            <div className="flex-1 min-w-0 w-full">
+          <div className="flex flex-col lg:flex-row gap-6 items-stretch h-[74vh]">
+            <div className="flex-1 min-w-0 w-full overflow-auto">
               <BookList projectId={projectId} shelfId={shelf.id} books={shelf.books}
                 variant="list"
                 onOpenBook={(id) => setNav({ level: "book", bookId: id })} />
             </div>
-            <div className="w-full lg:w-80 shrink-0">
-              <BookShelf books={shelf.books} onOpenBook={(id) => setNav({ level: "book", bookId: id })} />
+            <div className="flex-1 min-w-0 w-full">
+              <BookShelf
+                books={shelf.books}
+                onOpenBook={(id) => setNav({ level: "book", bookId: id })}
+                onAddBook={(name) => createBook.mutate({ shelfId: shelf.id, input: { name } })}
+              />
             </div>
           </div>
         ) : (
