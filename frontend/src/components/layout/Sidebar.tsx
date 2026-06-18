@@ -1,5 +1,8 @@
+import { useState } from "react";
+import { Plus } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useLabels } from "@/hooks/useLabels";
+import { CreateProjectDialog } from "@/components/project/CreateProjectDialog";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({ selectedProjectId, onSelectProject }: {
@@ -8,6 +11,7 @@ export function Sidebar({ selectedProjectId, onSelectProject }: {
 }) {
   const { data: projects = [] } = useProjects();
   const { data: labels = [] } = useLabels();
+  const [createProjectOpen, setCreateProjectOpen] = useState(false);
   return (
     <aside className="w-60 shrink-0 border-r border-border h-screen p-4 flex flex-col gap-6 bg-surface">
       <div className="font-display text-lg font-bold tracking-tight">MySchedule</div>
@@ -20,7 +24,16 @@ export function Sidebar({ selectedProjectId, onSelectProject }: {
         </button>
       </nav>
       <div>
-        <div className="font-mono text-xs uppercase tracking-wide text-ink-muted mb-2">Projects</div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-mono text-xs uppercase tracking-wide text-ink-muted">Projects</span>
+          <button
+            onClick={() => setCreateProjectOpen(true)}
+            aria-label="New project"
+            className="text-ink-muted hover:text-ink rounded p-0.5 hover:bg-bg"
+          >
+            <Plus className="size-3.5" />
+          </button>
+        </div>
         <ul className="text-sm space-y-1">
           {projects.length === 0 && <li className="px-2 text-ink-muted text-xs">No projects yet</li>}
           {projects.map((p) => (
@@ -51,6 +64,8 @@ export function Sidebar({ selectedProjectId, onSelectProject }: {
           ))}
         </ul>
       </div>
+
+      <CreateProjectDialog open={createProjectOpen} onOpenChange={setCreateProjectOpen} />
     </aside>
   );
 }
