@@ -64,7 +64,6 @@ export function LibraryPage({ projectId, tab, initialBookId, onBack }: {
               <div className="flex-1 min-h-0">
                 <BookShelf
                   books={shelf.books}
-                  seed={shelf.id}
                   onOpenBook={(id) => setNav({ level: "book", bookId: id })}
                   onAddBook={(name) => createBook.mutate({ shelfId: shelf.id, input: { name, color: randomBookColor() } })}
                 />

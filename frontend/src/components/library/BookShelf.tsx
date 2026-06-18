@@ -27,17 +27,6 @@ const spineWidth = (id: string) => 22 + (hash(id) % 12); // 22–33px
 const spineHeightPct = (id: string) => 78 + (hash(id + "h") % 18); // 78–95%
 const flatWidth = (id: string) => 58 + (hash(id + "f") % 20); // 58–77px
 
-// Decorative trinkets sprinkled on the shelves so it looks good empty or full.
-const DECOR = ["💐", "🖼️", "⏰", "👓", "🧺", "🌷", "📚", "🪴", "🖊️", "🕯️"];
-function decorFor(key: string): { emoji: string; side: "start" | "end" } | null {
-  const h = hash(key);
-  if (h % 5 < 2) return null; // ~40% of rows get nothing
-  return { emoji: DECOR[h % DECOR.length], side: h % 2 === 0 ? "start" : "end" };
-}
-function Decor({ emoji }: { emoji: string }) {
-  return <span aria-hidden className="self-end shrink-0 text-[32px] leading-none select-none pb-0.5">{emoji}</span>;
-}
-
 type Slot = { type: "spine"; book: BookSummary } | { type: "pile"; books: BookSummary[] };
 
 // Group a row's books: occasionally pile 2–3 flat books, otherwise upright spines.
@@ -105,8 +94,8 @@ function AddSpine({ onClick }: { onClick: () => void }) {
   );
 }
 
-export function BookShelf({ books, onOpenBook, onAddBook, seed = "" }: {
-  books: BookSummary[]; onOpenBook: (id: string) => void; onAddBook: (name: string) => void; seed?: string;
+export function BookShelf({ books, onOpenBook, onAddBook }: {
+  books: BookSummary[]; onOpenBook: (id: string) => void; onAddBook: (name: string) => void;
 }) {
   const [addingRow, setAddingRow] = useState<number | null>(null);
   const [name, setName] = useState("");
@@ -124,12 +113,9 @@ export function BookShelf({ books, onOpenBook, onAddBook, seed = "" }: {
   return (
     <div className="h-full rounded-lg p-2 shadow-inner" style={{ background: theme.frameLight, border: `5px solid ${theme.frame}` }}>
       <div className="h-full rounded flex flex-col overflow-hidden" style={{ background: theme.back }}>
-        {rows.map((rowBooks, ri) => {
-          const decor = decorFor(`${seed}-${ri}`);
-          return (
+        {rows.map((rowBooks, ri) => (
           <div key={ri} className="flex-1 min-h-0 flex flex-col justify-end">
             <div className="flex items-end gap-1.5 px-3 flex-1 min-h-0 overflow-hidden">
-              {decor?.side === "start" && <Decor emoji={decor.emoji} />}
               {groupRow(rowBooks).map((s) =>
                 s.type === "spine" ? (
                   <BookSpine key={s.book.id} book={s.book} onOpen={() => onOpenBook(s.book.id)} />
@@ -153,15 +139,13 @@ export function BookShelf({ books, onOpenBook, onAddBook, seed = "" }: {
               ) : (
                 <AddSpine onClick={() => { setName(""); setAddingRow(ri); }} />
               )}
-              {decor?.side === "end" && <Decor emoji={decor.emoji} />}
             </div>
             <div
               className="h-3 shrink-0"
               style={{ background: `linear-gradient(${theme.plankFrom}, ${theme.plankTo})`, boxShadow: "0 3px 6px rgba(0,0,0,0.45)" }}
             />
           </div>
-          );
-        })}
+        ))}
       </div>
     </div>
   );
