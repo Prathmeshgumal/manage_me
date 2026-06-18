@@ -24,11 +24,14 @@ enum Priority {
 }
 
 model Project {
-  id        String   @id @default(cuid())
-  name      String
-  color     String   @default("#8A8A86")
-  tasks     Task[]
-  createdAt DateTime @default(now())
+  id                   String   @id @default(cuid())
+  name                 String
+  color                String   @default("#8A8A86")
+  githubRepoId         Int?
+  githubRepoFullName   String?
+  githubInstallationId Int?
+  tasks                Task[]
+  createdAt            DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 

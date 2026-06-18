@@ -13,6 +13,9 @@ vi.mock("./appAuth", () => ({
 vi.mock("./contributions", () => ({
   fetchContributions: vi.fn(async () => ({ totalContributions: 2, weeks: [{ days: [{ date: "2026-06-02", count: 2, level: 1 }] }] })),
 }));
+vi.mock("./repos", () => ({
+  listRepositories: vi.fn(async () => [{ id: 10, fullName: "acme/website", private: true, installationId: 1 }]),
+}));
 
 const ENV = {
   GITHUB_APP_ID: "1", GITHUB_APP_SLUG: "myschedule-dev", GITHUB_APP_CLIENT_ID: "Iv1.abc",
@@ -77,6 +80,12 @@ describe("github routes", () => {
     const res = await request(app).get("/github/contributions");
     expect(res.status).toBe(200);
     expect(res.body.totalContributions).toBe(2);
+  });
+
+  it("lists repositories", async () => {
+    const res = await request(app).get("/github/repositories");
+    expect(res.status).toBe(200);
+    expect(res.body[0].fullName).toBe("acme/website");
   });
 
   it("disconnect clears the user", async () => {

@@ -4,6 +4,7 @@ import { githubConfig } from "./config.js";
 import { signState, verifyState } from "./crypto.js";
 import { authorizeUrl, exchangeCode, getAuthedUser } from "./oauth.js";
 import { getInstallation } from "./appAuth.js";
+import { listRepositories } from "./repos.js";
 import { fetchContributions } from "./contributions.js";
 import {
   saveUserToken, getUserToken, deleteUserToken, saveInstallation, listInstallations,
@@ -49,6 +50,10 @@ githubRouter.get("/setup", asyncHandler(async (req, res) => {
   const meta = await getInstallation(installationId);
   await saveInstallation(meta);
   res.redirect(`${back}?installed=1`);
+}));
+
+githubRouter.get("/repositories", asyncHandler(async (_req, res) => {
+  res.json(await listRepositories());
 }));
 
 githubRouter.get("/contributions", asyncHandler(async (_req, res) => {

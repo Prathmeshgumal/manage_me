@@ -42,6 +42,9 @@ export type TaskFilter = z.infer<typeof taskFilterSchema>;
 export const createProjectSchema = z.object({
   name: z.string().min(1).max(200),
   color: HEX.default("#8A8A86"),
+  githubRepoId: z.number().int().nullish(),
+  githubRepoFullName: z.string().nullish(),
+  githubInstallationId: z.number().int().nullish(),
 });
 export const updateProjectSchema = createProjectSchema.partial();
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
