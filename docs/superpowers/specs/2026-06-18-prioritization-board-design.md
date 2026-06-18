@@ -101,3 +101,29 @@ All request bodies validated with shared Zod schemas. Consistent error shape: `{
 ## 10. Out of MVP (tracked in PLAN.md "Future")
 
 Auth / multi-user / teams / workspaces, real-time collaboration, comments, sub-tasks, cycles/sprints, attachments, notifications, mobile app, Notion-style docs/wiki, saved filters / custom views, activity history, search ranking.
+
+## 11. Visual Identity — "Signal"
+
+Keep Linear's interaction model; give MySchedule its own look. Guiding rule: **color is reserved for priority** — the rest of the UI is a calm, near-monochrome "ink on paper" workspace, so urgency is what the eye jumps to.
+
+**Signature — priority heat-spine:** each task card has a thin left-edge vertical bar colored on a temperature ramp (hot red = Urgent → cold blue = Low → gray = None). Priority-grouped columns read as a thermal gradient. Urgent spines get a subtle slow pulse, disabled under `prefers-reduced-motion`. Priority is always *also* encoded by a mono label + glyph — never color alone (accessibility).
+
+**Palette (CSS variables; warm-tinted neutrals):**
+
+| Token | Light | Dark |
+|---|---|---|
+| `--bg` | `#FAFAF8` | `#131316` |
+| `--surface` | `#FFFFFF` | `#1C1C21` |
+| `--border` | `#E7E7E2` | `#2A2A30` |
+| `--ink` | `#1A1A18` | `#ECECEE` |
+| `--ink-muted` | `#6B6B64` | `#9A9AA0` |
+
+Interactive accent = `--ink` (high-contrast near-black/near-white), not a brand hue.
+
+**Priority heat ramp** (spines, chips, glyphs): Urgent `#F4404A` · High `#F5872B` · Medium `#E0B341` · Low `#4FA3D1` · None `#8A8A86`.
+
+**Type:** Display/wordmark/view titles → **Space Grotesk**; body/UI → **IBM Plex Sans**; mono (task IDs, dates, counts, priority labels, ⌘K hints) → **IBM Plex Mono**. (Deliberately not Inter.)
+
+**Layout:** three zones — slim left rail (Views · Projects · Labels) · top bar (view title, Status⇄Priority grouping toggle, filters, + New) · dense board/list area.
+
+**Quality floor:** responsive to mobile, visible keyboard focus rings, `prefers-reduced-motion` respected, WCAG-AA contrast for text.
