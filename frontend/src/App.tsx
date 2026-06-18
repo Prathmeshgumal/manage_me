@@ -5,7 +5,7 @@ import { Topbar, type ViewMode, type GroupBy } from "@/components/layout/Topbar"
 import { BoardView, type CreateDefaults } from "@/components/board/BoardView";
 import { ListView } from "@/components/list/ListView";
 import { QuickCreateDialog } from "@/components/task/QuickCreateDialog";
-import { TaskDetailDrawer } from "@/components/task/TaskDetailDrawer";
+import { TaskDetailPanel } from "@/components/task/TaskDetailPanel";
 import { CommandPalette } from "@/components/command/CommandPalette";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTasks } from "@/hooks/useTasks";
@@ -77,7 +77,7 @@ export default function App() {
         defaultStatus={createDefaults.status}
         defaultPriority={createDefaults.priority}
       />
-      <TaskDetailDrawer task={openTask} open={!!openTask} onOpenChange={(o) => !o && setOpenTask(null)} />
+      <TaskDetailPanel task={openTask} open={!!openTask} onOpenChange={(o) => !o && setOpenTask(null)} />
       <CommandPalette
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
