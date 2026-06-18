@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Status, Priority } from "@/types";
@@ -15,6 +16,7 @@ export function QuickCreateDialog({ open, onOpenChange, defaultProjectId, defaul
   const create = useCreateTask();
   const { data: projects = [] } = useProjects();
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [status, setStatus] = useState<Status>("BACKLOG");
   const [priority, setPriority] = useState<Priority>("NONE");
   const [projectId, setProjectId] = useState<string>(defaultProjectId ?? "none");
@@ -34,12 +36,13 @@ export function QuickCreateDialog({ open, onOpenChange, defaultProjectId, defaul
     create.mutate(
       {
         title: title.trim(),
+        description: description.trim() || null,
         status,
         priority,
         projectId: projectId === "none" ? null : projectId,
         dueDate: dueDate ? new Date(dueDate) : null,
       },
-      { onSuccess: () => { setTitle(""); setDueDate(""); onOpenChange(false); } },
+      { onSuccess: () => { setTitle(""); setDescription(""); setDueDate(""); onOpenChange(false); } },
     );
   }
 
@@ -55,6 +58,12 @@ export function QuickCreateDialog({ open, onOpenChange, defaultProjectId, defaul
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
+        />
+        <Textarea
+          placeholder="Description (optional, markdown)"
+          className="min-h-24 font-mono text-sm"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
         />
         <div className="grid grid-cols-2 gap-3">
           <Select value={status} onValueChange={(v) => setStatus(v as Status)}>
