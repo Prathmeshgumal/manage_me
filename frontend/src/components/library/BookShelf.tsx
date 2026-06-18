@@ -28,14 +28,14 @@ const spineHeightPct = (id: string) => 78 + (hash(id + "h") % 18); // 78–95%
 const flatWidth = (id: string) => 58 + (hash(id + "f") % 20); // 58–77px
 
 // Decorative trinkets sprinkled on the shelves so it looks good empty or full.
-const DECOR = ["🪴", "🕰️", "🖼️", "🏺", "🌿", "🕯️", "🧸", "📷", "🪆", "🌵", "⏳", "🐚"];
+const DECOR = ["💐", "🖼️", "⏰", "👓", "🧺", "🌷", "📚", "🪴", "🖊️", "🕯️"];
 function decorFor(key: string): { emoji: string; side: "start" | "end" } | null {
   const h = hash(key);
   if (h % 5 < 2) return null; // ~40% of rows get nothing
   return { emoji: DECOR[h % DECOR.length], side: h % 2 === 0 ? "start" : "end" };
 }
 function Decor({ emoji }: { emoji: string }) {
-  return <span aria-hidden className="self-end shrink-0 text-[26px] leading-none select-none pb-0.5">{emoji}</span>;
+  return <span aria-hidden className="self-end shrink-0 text-[32px] leading-none select-none pb-0.5">{emoji}</span>;
 }
 
 type Slot = { type: "spine"; book: BookSummary } | { type: "pile"; books: BookSummary[] };
