@@ -5,7 +5,9 @@ import { signState, verifyState } from "./crypto.js";
 import { authorizeUrl, exchangeCode, getAuthedUser } from "./oauth.js";
 import { getInstallation } from "./appAuth.js";
 import { listRepositories } from "./repos.js";
+import { getRepoContents } from "./repoContents.js";
 import { fetchContributions } from "./contributions.js";
+import { z } from "zod";
 import {
   saveUserToken, getUserToken, deleteUserToken, saveInstallation, listInstallations,
 } from "./store.js";
@@ -54,6 +56,17 @@ githubRouter.get("/setup", asyncHandler(async (req, res) => {
 
 githubRouter.get("/repositories", asyncHandler(async (_req, res) => {
   res.json(await listRepositories());
+}));
+
+const contentsQuery = z.object({
+  installationId: z.coerce.number().int(),
+  owner: z.string().min(1),
+  repo: z.string().min(1),
+  path: z.string().default(""),
+});
+githubRouter.get("/repos/contents", asyncHandler(async (req, res) => {
+  const { installationId, owner, repo, path } = contentsQuery.parse(req.query);
+  res.json(await getRepoContents(installationId, owner, repo, path));
 }));
 
 githubRouter.get("/contributions", asyncHandler(async (_req, res) => {
