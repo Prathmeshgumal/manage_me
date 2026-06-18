@@ -101,3 +101,22 @@ export interface UpdateLabelInput {
   name?: string;
   color?: string;
 }
+
+export interface BookSummary {
+  id: string; name: string; description: string | null; color: string; sortOrder: number; pageCount: number;
+}
+export interface Shelf {
+  id: string; projectId: string; name: string; description: string | null; books: BookSummary[];
+}
+export interface PageSummary { id: string; title: string; sortOrder: number; updatedAt: string; }
+export interface Book {
+  id: string; name: string; description: string | null; color: string; sortOrder: number; pages: PageSummary[];
+}
+export interface Page {
+  id: string; bookId: string; title: string; content: string; sortOrder: number; createdAt: string; updatedAt: string;
+}
+export interface CreateBookInput { name: string; description?: string | null; color?: string; }
+export interface UpdateBookInput { name?: string; description?: string | null; color?: string; }
+export interface UpdateShelfInput { name?: string; description?: string | null; }
+export interface CreatePageInput { title: string; }
+export interface UpdatePageInput { title?: string; content?: string; }
