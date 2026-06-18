@@ -17,27 +17,27 @@ A fast, keyboard-driven workspace for personal task planning, project planning, 
 
 ---
 
-## Phase 1 — Prioritization Board (MVP) — IN PROGRESS
+## Phase 1 — Prioritization Board (MVP) — ✅ COMPLETE
 
 > Full design: `docs/superpowers/specs/2026-06-18-prioritization-board-design.md`
 
 Single-user, no auth. Clone the core feel of Linear's issue board.
 
-- [ ] Monorepo scaffold (pnpm + Turborepo, `apps/web`, `apps/api`, `packages/shared`)
-- [ ] Postgres + Prisma schema: Task, Project, Label, TaskLabel
-- [ ] REST API: tasks (CRUD + filter), projects (CRUD), labels (CRUD), Zod validation, error middleware
-- [ ] Shared Zod schemas / TS types consumed by both ends
-- [ ] Frontend shell: sidebar + main area, shadcn/ui, dark mode toggle
-- [ ] Board view with **Status ↔ Priority** grouping toggle
-- [ ] List view
-- [ ] Drag & drop (dnd-kit) with optimistic updates + `sortOrder`
-- [ ] Task fields: title, markdown description, status, priority, due date, labels, project
-- [ ] Quick-create modal
-- [ ] Task detail side drawer
-- [ ] ⌘K command palette
-- [ ] Keyboard shortcuts (C / `/` / arrows)
-- [ ] Vitest coverage for shared schemas + API handlers
-- [ ] Deploy: web → Vercel, api → Render, db → Neon
+- [x] Monorepo scaffold (pnpm + Turborepo, `apps/web`, `apps/api`, `packages/shared`)
+- [x] Postgres + Prisma schema: Task, Project, Label, TaskLabel
+- [x] REST API: tasks (CRUD + filter), projects (CRUD), labels (CRUD), Zod validation, error middleware
+- [x] Shared Zod schemas / TS types consumed by both ends
+- [x] Frontend shell: sidebar + main area, shadcn/ui, dark mode toggle
+- [x] Board view with **Status ↔ Priority** grouping toggle
+- [x] List view
+- [x] Drag & drop (dnd-kit) with optimistic updates + `sortOrder`
+- [x] Task fields: title, markdown description, status, priority, due date, labels, project
+- [x] Quick-create modal
+- [x] Task detail side drawer
+- [x] ⌘K command palette
+- [x] Keyboard shortcuts (C / `/` / arrows)
+- [x] Vitest coverage for shared schemas + API handlers
+- [x] Deploy: web → Vercel, api → Render, db → Neon
 
 ---
 
