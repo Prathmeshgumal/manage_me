@@ -1,14 +1,17 @@
-import { Moon, Sun, Plus, Search } from "lucide-react";
+import { Moon, Sun, Plus, Search, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { DUE_BUCKET_ORDER, dueBucketMeta, type DueBucket } from "@/lib/dueDate";
 import { cn } from "@/lib/utils";
 
 export type ViewMode = "board" | "list";
-export type GroupBy = "status" | "priority";
+export type GroupBy = "status" | "priority" | "due";
 
-export function Topbar({ view, onView, groupBy, onGroupBy, onNewTask, onOpenPalette }: {
+export function Topbar({ view, onView, groupBy, onGroupBy, dueFilter, onDueFilter, onNewTask, onOpenPalette }: {
   view: ViewMode; onView: (v: ViewMode) => void;
   groupBy: GroupBy; onGroupBy: (g: GroupBy) => void;
+  dueFilter: DueBucket | "ALL"; onDueFilter: (f: DueBucket | "ALL") => void;
   onNewTask: () => void; onOpenPalette: () => void;
 }) {
   const { theme, toggle } = useTheme();
@@ -26,8 +29,21 @@ export function Topbar({ view, onView, groupBy, onGroupBy, onNewTask, onOpenPale
           <div className="flex items-center gap-1 border border-border rounded-md p-0.5">
             <button className={seg(groupBy === "status")} onClick={() => onGroupBy("status")}>Status</button>
             <button className={seg(groupBy === "priority")} onClick={() => onGroupBy("priority")}>Priority</button>
+            <button className={seg(groupBy === "due")} onClick={() => onGroupBy("due")}>Due</button>
           </div>
         )}
+        <Select value={dueFilter} onValueChange={(v) => onDueFilter(v as DueBucket | "ALL")}>
+          <SelectTrigger className="w-[150px] h-9" aria-label="Filter by due date">
+            <CalendarClock className="size-4 text-ink-muted" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All dates</SelectItem>
+            {DUE_BUCKET_ORDER.map((b) => (
+              <SelectItem key={b} value={b}>{dueBucketMeta[b].label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button variant="ghost" size="icon" onClick={onOpenPalette} aria-label="Search (Cmd+K)">
           <Search className="size-4" />
         </Button>

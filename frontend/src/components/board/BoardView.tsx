@@ -1,31 +1,50 @@
 import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
-import type { Task, Status, Priority, TaskFilter } from "@/types";
+import type { Task, Status, Priority, TaskFilter, UpdateTaskInput } from "@/types";
 import { useTasks, useUpdateTask } from "@/hooks/useTasks";
 import { STATUS_ORDER, PRIORITY_ORDER, statusMeta, priorityMeta } from "@/lib/priority";
+import {
+  DUE_BUCKET_ORDER, dueBucketMeta, dueBucket, bucketAnchorDate, type DueBucket,
+} from "@/lib/dueDate";
 import { Column } from "./Column";
 import type { GroupBy } from "@/components/layout/Topbar";
 
-export type CreateDefaults = { status?: Status; priority?: Priority };
+export type CreateDefaults = { status?: Status; priority?: Priority; dueDate?: string };
 
-export function BoardView({ groupBy, projectId, onOpenTask, onCreateInColumn }: {
-  groupBy: GroupBy; projectId: string | null; onOpenTask: (t: Task) => void;
-  onCreateInColumn: (defaults: CreateDefaults) => void;
+export function BoardView({ groupBy, projectId, dueFilter, onOpenTask, onCreateInColumn }: {
+  groupBy: GroupBy; projectId: string | null; dueFilter: DueBucket | "ALL";
+  onOpenTask: (t: Task) => void; onCreateInColumn: (defaults: CreateDefaults) => void;
 }) {
   const filter: TaskFilter | undefined = projectId ? { projectId } : undefined;
-  const { data: tasks = [] } = useTasks(filter);
+  const { data: allTasks = [] } = useTasks(filter);
+  const tasks = dueFilter === "ALL" ? allTasks : allTasks.filter((t) => dueBucket(t.dueDate) === dueFilter);
   const update = useUpdateTask();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  const groups: string[] = groupBy === "status" ? STATUS_ORDER : PRIORITY_ORDER;
+  const groups: string[] =
+    groupBy === "status" ? STATUS_ORDER : groupBy === "priority" ? PRIORITY_ORDER : DUE_BUCKET_ORDER;
+
+  const groupValue = (t: Task): string =>
+    groupBy === "status" ? t.status : groupBy === "priority" ? t.priority : dueBucket(t.dueDate);
+
   const colInfo = (key: string) =>
     groupBy === "status"
       ? { title: statusMeta[key as Status].label, accent: "var(--border)" }
-      : { title: priorityMeta[key as Priority].label, accent: priorityMeta[key as Priority].color };
+      : groupBy === "priority"
+        ? { title: priorityMeta[key as Priority].label, accent: priorityMeta[key as Priority].color }
+        : { title: dueBucketMeta[key as DueBucket].label, accent: dueBucketMeta[key as DueBucket].accent };
+
+  const patchForGroup = (key: string): UpdateTaskInput =>
+    groupBy === "status" ? { status: key as Status }
+      : groupBy === "priority" ? { priority: key as Priority }
+        : { dueDate: bucketAnchorDate(key as DueBucket) };
+
+  const createDefaultsForGroup = (key: string): CreateDefaults =>
+    groupBy === "status" ? { status: key as Status }
+      : groupBy === "priority" ? { priority: key as Priority }
+        : { dueDate: bucketAnchorDate(key as DueBucket) ?? undefined };
 
   const byGroup = (key: string) =>
-    tasks
-      .filter((t) => (groupBy === "status" ? t.status : t.priority) === key)
-      .sort((a, b) => a.sortOrder - b.sortOrder);
+    tasks.filter((t) => groupValue(t) === key).sort((a, b) => a.sortOrder - b.sortOrder);
 
   function onDragEnd(e: DragEndEvent) {
     const activeId = String(e.active.id);
@@ -34,9 +53,7 @@ export function BoardView({ groupBy, projectId, onOpenTask, onCreateInColumn }: 
     const overId = String(e.over.id);
 
     const overTask = tasks.find((t) => t.id === overId);
-    const targetGroup = overTask
-      ? (groupBy === "status" ? overTask.status : overTask.priority)
-      : (overId as Status | Priority);
+    const targetGroup = overTask ? groupValue(overTask) : overId;
     const column = byGroup(targetGroup).filter((t) => t.id !== activeId);
 
     const idx = overTask ? column.findIndex((t) => t.id === overTask.id) : column.length;
@@ -44,10 +61,7 @@ export function BoardView({ groupBy, projectId, onOpenTask, onCreateInColumn }: 
     const after = column[idx]?.sortOrder ?? before + 2;
     const sortOrder = (before + after) / 2;
 
-    const patch = groupBy === "status"
-      ? { status: targetGroup as Status, sortOrder }
-      : { priority: targetGroup as Priority, sortOrder };
-    update.mutate({ id: activeId, patch });
+    update.mutate({ id: activeId, patch: { ...patchForGroup(targetGroup), sortOrder } });
   }
 
   return (
@@ -63,11 +77,7 @@ export function BoardView({ groupBy, projectId, onOpenTask, onCreateInColumn }: 
               accent={info.accent}
               tasks={byGroup(key)}
               onOpenTask={onOpenTask}
-              onAddTask={() =>
-                onCreateInColumn(
-                  groupBy === "status" ? { status: key as Status } : { priority: key as Priority },
-                )
-              }
+              onAddTask={() => onCreateInColumn(createDefaultsForGroup(key))}
             />
           );
         })}

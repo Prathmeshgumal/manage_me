@@ -9,10 +9,12 @@ import { TaskDetailPanel } from "@/components/task/TaskDetailPanel";
 import { CommandPalette } from "@/components/command/CommandPalette";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTasks } from "@/hooks/useTasks";
+import type { DueBucket } from "@/lib/dueDate";
 
 export default function App() {
   const [view, setView] = useState<ViewMode>("board");
   const [groupBy, setGroupBy] = useState<GroupBy>("status");
+  const [dueFilter, setDueFilter] = useState<DueBucket | "ALL">("ALL");
   const [projectId, setProjectId] = useState<string | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -53,6 +55,8 @@ export default function App() {
           onView={setView}
           groupBy={groupBy}
           onGroupBy={setGroupBy}
+          dueFilter={dueFilter}
+          onDueFilter={setDueFilter}
           onNewTask={() => openCreate()}
           onOpenPalette={() => setPaletteOpen(true)}
         />
@@ -61,11 +65,12 @@ export default function App() {
             <BoardView
               groupBy={groupBy}
               projectId={projectId}
+              dueFilter={dueFilter}
               onOpenTask={setOpenTask}
               onCreateInColumn={openCreate}
             />
           ) : (
-            <ListView projectId={projectId} onOpenTask={setOpenTask} />
+            <ListView projectId={projectId} dueFilter={dueFilter} onOpenTask={setOpenTask} />
           )}
         </section>
       </main>
@@ -76,6 +81,7 @@ export default function App() {
         defaultProjectId={projectId}
         defaultStatus={createDefaults.status}
         defaultPriority={createDefaults.priority}
+        defaultDueDate={createDefaults.dueDate}
       />
       <TaskDetailPanel task={openTask} open={!!openTask} onOpenChange={(o) => !o && setOpenTask(null)} />
       <CommandPalette

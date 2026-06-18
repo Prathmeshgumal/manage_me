@@ -9,9 +9,9 @@ import { statusMeta, priorityMeta, STATUS_ORDER, PRIORITY_ORDER } from "@/lib/pr
 import { useCreateTask } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
 
-export function QuickCreateDialog({ open, onOpenChange, defaultProjectId, defaultStatus, defaultPriority }: {
+export function QuickCreateDialog({ open, onOpenChange, defaultProjectId, defaultStatus, defaultPriority, defaultDueDate }: {
   open: boolean; onOpenChange: (o: boolean) => void; defaultProjectId: string | null;
-  defaultStatus?: Status; defaultPriority?: Priority;
+  defaultStatus?: Status; defaultPriority?: Priority; defaultDueDate?: string;
 }) {
   const create = useCreateTask();
   const { data: projects = [] } = useProjects();
@@ -28,8 +28,9 @@ export function QuickCreateDialog({ open, onOpenChange, defaultProjectId, defaul
       setStatus(defaultStatus ?? "BACKLOG");
       setPriority(defaultPriority ?? "NONE");
       setProjectId(defaultProjectId ?? "none");
+      setDueDate(defaultDueDate ?? "");
     }
-  }, [open, defaultStatus, defaultPriority, defaultProjectId]);
+  }, [open, defaultStatus, defaultPriority, defaultProjectId, defaultDueDate]);
 
   function submit() {
     if (!title.trim()) return;

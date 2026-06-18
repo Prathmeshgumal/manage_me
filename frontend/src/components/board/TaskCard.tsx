@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Task } from "@/types";
 import { priorityMeta } from "@/lib/priority";
+import { dueDateDisplay } from "@/lib/dueDate";
 
 export function TaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
@@ -33,11 +34,10 @@ export function TaskCard({ task, onClick }: { task: Task; onClick: () => void })
       </div>
       <p className="text-sm mt-1 leading-snug">{task.title}</p>
       <div className="flex items-center gap-2 mt-2">
-        {task.dueDate && (
-          <span className="font-mono text-[11px] text-ink-muted">
-            {new Date(task.dueDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-          </span>
-        )}
+        {task.dueDate && (() => {
+          const due = dueDateDisplay(task.dueDate);
+          return <span className="font-mono text-[11px]" style={{ color: due.color }}>{due.text}</span>;
+        })()}
         {task.labels.map((l) => (
           <span key={l.id} className="size-2 rounded-sm" style={{ background: l.color }} title={l.name} />
         ))}

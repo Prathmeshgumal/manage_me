@@ -1,10 +1,14 @@
 import type { Task, TaskFilter } from "@/types";
 import { useTasks } from "@/hooks/useTasks";
 import { priorityMeta, statusMeta, STATUS_ORDER } from "@/lib/priority";
+import { dueBucket, dueDateDisplay, type DueBucket } from "@/lib/dueDate";
 
-export function ListView({ projectId, onOpenTask }: { projectId: string | null; onOpenTask: (t: Task) => void }) {
+export function ListView({ projectId, dueFilter, onOpenTask }: {
+  projectId: string | null; dueFilter: DueBucket | "ALL"; onOpenTask: (t: Task) => void;
+}) {
   const filter: TaskFilter | undefined = projectId ? { projectId } : undefined;
-  const { data: tasks = [] } = useTasks(filter);
+  const { data: allTasks = [] } = useTasks(filter);
+  const tasks = dueFilter === "ALL" ? allTasks : allTasks.filter((t) => dueBucket(t.dueDate) === dueFilter);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -33,11 +37,10 @@ export function ListView({ projectId, onOpenTask }: { projectId: string | null; 
                     {t.labels.map((l) => (
                       <span key={l.id} className="size-2 rounded-sm" style={{ background: l.color }} title={l.name} />
                     ))}
-                    {t.dueDate && (
-                      <span className="font-mono text-[11px] text-ink-muted">
-                        {new Date(t.dueDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                      </span>
-                    )}
+                    {t.dueDate && (() => {
+                      const due = dueDateDisplay(t.dueDate);
+                      return <span className="font-mono text-[11px]" style={{ color: due.color }}>{due.text}</span>;
+                    })()}
                   </button>
                 );
               })}
