@@ -1,20 +1,37 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, PanelLeftClose } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useLabels } from "@/hooks/useLabels";
 import { CreateProjectDialog } from "@/components/project/CreateProjectDialog";
 import { cn } from "@/lib/utils";
 
-export function Sidebar({ selectedProjectId, onSelectProject }: {
+export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggle }: {
   selectedProjectId: string | null;
   onSelectProject: (id: string | null) => void;
+  collapsed: boolean;
+  onToggle: () => void;
 }) {
   const { data: projects = [] } = useProjects();
   const { data: labels = [] } = useLabels();
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   return (
-    <aside className="w-60 shrink-0 border-r border-border h-screen p-4 flex flex-col gap-6 bg-surface">
-      <div className="font-display text-lg font-bold tracking-tight">MySchedule</div>
+    <aside
+      className={cn(
+        "shrink-0 h-screen bg-surface overflow-hidden transition-[width] duration-200 ease-in-out",
+        collapsed ? "w-0 border-r-0" : "w-60 border-r border-border",
+      )}
+    >
+      <div className="w-60 h-screen p-4 flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <span className="font-display text-lg font-bold tracking-tight">MySchedule</span>
+        <button
+          onClick={onToggle}
+          aria-label="Collapse sidebar"
+          className="text-ink-muted hover:text-ink rounded p-1 hover:bg-bg"
+        >
+          <PanelLeftClose className="size-4" />
+        </button>
+      </div>
       <nav className="text-sm">
         <button
           onClick={() => onSelectProject(null)}
@@ -66,6 +83,7 @@ export function Sidebar({ selectedProjectId, onSelectProject }: {
       </div>
 
       <CreateProjectDialog open={createProjectOpen} onOpenChange={setCreateProjectOpen} />
+      </div>
     </aside>
   );
 }

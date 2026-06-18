@@ -16,6 +16,9 @@ export default function App() {
   const [groupBy, setGroupBy] = useState<GroupBy>("status");
   const [dueFilter, setDueFilter] = useState<DueBucket | "ALL">("ALL");
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    () => localStorage.getItem("sidebarCollapsed") === "true",
+  );
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [createDefaults, setCreateDefaults] = useState<CreateDefaults>({});
@@ -28,6 +31,12 @@ export default function App() {
     setCreateDefaults(defaults);
     setCreateOpen(true);
   };
+
+  const toggleSidebar = () =>
+    setSidebarCollapsed((c) => {
+      localStorage.setItem("sidebarCollapsed", String(!c));
+      return !c;
+    });
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -48,7 +57,12 @@ export default function App() {
 
   return (
     <div className="flex">
-      <Sidebar selectedProjectId={projectId} onSelectProject={setProjectId} />
+      <Sidebar
+        selectedProjectId={projectId}
+        onSelectProject={setProjectId}
+        collapsed={sidebarCollapsed}
+        onToggle={toggleSidebar}
+      />
       <main className="flex-1 h-screen flex flex-col">
         <Topbar
           view={view}
@@ -59,6 +73,8 @@ export default function App() {
           onDueFilter={setDueFilter}
           onNewTask={() => openCreate()}
           onOpenPalette={() => setPaletteOpen(true)}
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={toggleSidebar}
         />
         <section className="flex-1 overflow-auto p-4">
           {view === "board" ? (

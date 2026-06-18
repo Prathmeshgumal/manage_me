@@ -1,4 +1,4 @@
-import { Moon, Sun, Plus, Search, CalendarClock } from "lucide-react";
+import { Moon, Sun, Plus, Search, CalendarClock, PanelLeftOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTheme } from "@/components/theme/ThemeProvider";
@@ -8,11 +8,12 @@ import { cn } from "@/lib/utils";
 export type ViewMode = "board" | "list";
 export type GroupBy = "status" | "priority" | "due";
 
-export function Topbar({ view, onView, groupBy, onGroupBy, dueFilter, onDueFilter, onNewTask, onOpenPalette }: {
+export function Topbar({ view, onView, groupBy, onGroupBy, dueFilter, onDueFilter, onNewTask, onOpenPalette, sidebarCollapsed, onToggleSidebar }: {
   view: ViewMode; onView: (v: ViewMode) => void;
   groupBy: GroupBy; onGroupBy: (g: GroupBy) => void;
   dueFilter: DueBucket | "ALL"; onDueFilter: (f: DueBucket | "ALL") => void;
   onNewTask: () => void; onOpenPalette: () => void;
+  sidebarCollapsed: boolean; onToggleSidebar: () => void;
 }) {
   const { theme, toggle } = useTheme();
   const seg = (active: boolean) =>
@@ -21,6 +22,11 @@ export function Topbar({ view, onView, groupBy, onGroupBy, dueFilter, onDueFilte
   return (
     <header className="h-14 border-b border-border flex items-center justify-between px-4 gap-4 bg-surface">
       <div className="flex items-center gap-1">
+        {sidebarCollapsed && (
+          <Button variant="ghost" size="icon" onClick={onToggleSidebar} aria-label="Open sidebar" className="mr-1">
+            <PanelLeftOpen className="size-4" />
+          </Button>
+        )}
         <button className={seg(view === "board")} onClick={() => onView("board")}>Board</button>
         <button className={seg(view === "list")} onClick={() => onView("list")}>List</button>
       </div>
