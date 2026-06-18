@@ -1,4 +1,5 @@
 import { DndContext, closestCorners, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import type { Task, Status, Priority, TaskFilter, UpdateTaskInput } from "@/types";
 import { useTasks, useUpdateTask } from "@/hooks/useTasks";
 import { STATUS_ORDER, PRIORITY_ORDER, statusMeta, priorityMeta } from "@/lib/priority";
@@ -48,18 +49,40 @@ export function BoardView({ groupBy, projectId, dueFilter, onOpenTask, onCreateI
 
   function onDragEnd(e: DragEndEvent) {
     const activeId = String(e.active.id);
-    const task = tasks.find((t) => t.id === activeId);
-    if (!task || !e.over) return;
+    const active = tasks.find((t) => t.id === activeId);
+    if (!active || !e.over) return;
     const overId = String(e.over.id);
+    if (activeId === overId) return;
 
     const overTask = tasks.find((t) => t.id === overId);
     const targetGroup = overTask ? groupValue(overTask) : overId;
-    const column = byGroup(targetGroup).filter((t) => t.id !== activeId);
+    const sourceGroup = groupValue(active);
 
-    const idx = overTask ? column.findIndex((t) => t.id === overTask.id) : column.length;
-    const before = column[idx - 1]?.sortOrder ?? (column[0] ? column[0].sortOrder - 1 : 0);
-    const after = column[idx]?.sortOrder ?? before + 2;
-    const sortOrder = (before + after) / 2;
+    // Ordered ids currently in the target column (includes active iff same group).
+    const ids = byGroup(targetGroup).map((t) => t.id);
+
+    let ordered: string[];
+    if (sourceGroup === targetGroup) {
+      const oldIndex = ids.indexOf(activeId);
+      const newIndex = overTask ? ids.indexOf(overId) : ids.length - 1;
+      if (oldIndex === -1 || newIndex === -1) return;
+      ordered = arrayMove(ids, oldIndex, newIndex);
+    } else {
+      const insertAt = overTask ? ids.indexOf(overId) : ids.length;
+      ordered = [...ids.slice(0, insertAt), activeId, ...ids.slice(insertAt)];
+    }
+
+    // New sortOrder = midpoint of the active card's neighbors in the resulting order.
+    const byId = new Map(tasks.map((t) => [t.id, t]));
+    const pos = ordered.indexOf(activeId);
+    const prevSort = pos > 0 ? byId.get(ordered[pos - 1])!.sortOrder : undefined;
+    const nextSort = pos < ordered.length - 1 ? byId.get(ordered[pos + 1])!.sortOrder : undefined;
+
+    let sortOrder: number;
+    if (prevSort === undefined && nextSort === undefined) sortOrder = 0;
+    else if (prevSort === undefined) sortOrder = nextSort! - 1;
+    else if (nextSort === undefined) sortOrder = prevSort + 1;
+    else sortOrder = (prevSort + nextSort) / 2;
 
     update.mutate({ id: activeId, patch: { ...patchForGroup(targetGroup), sortOrder } });
   }
