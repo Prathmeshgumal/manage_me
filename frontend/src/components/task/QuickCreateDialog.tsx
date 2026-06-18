@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -47,25 +47,25 @@ export function QuickCreateDialog({ open, onOpenChange, defaultProjectId, defaul
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="font-display">New task</DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="mx-auto max-w-3xl rounded-t-2xl h-[90vh] overflow-y-auto flex flex-col gap-4"
+      >
+        <SheetHeader className="p-0">
+          <SheetTitle className="font-display text-left">New task</SheetTitle>
+        </SheetHeader>
+
         <Input
           autoFocus
           placeholder="Task title"
+          className="font-display text-lg"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
         />
-        <Textarea
-          placeholder="Description (optional, markdown)"
-          className="min-h-24 font-mono text-sm"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <div className="grid grid-cols-2 gap-3">
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Select value={status} onValueChange={(v) => setStatus(v as Status)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -87,8 +87,21 @@ export function QuickCreateDialog({ open, onOpenChange, defaultProjectId, defaul
           </Select>
           <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         </div>
-        <Button onClick={submit} disabled={!title.trim() || create.isPending}>Create task</Button>
-      </DialogContent>
-    </Dialog>
+
+        <div className="flex flex-col gap-2 flex-1 min-h-0">
+          <span className="font-mono text-xs uppercase tracking-wide text-ink-muted">Description</span>
+          <Textarea
+            placeholder="Write markdown… (optional)"
+            className="flex-1 min-h-32 font-mono text-sm resize-none"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+
+        <Button onClick={submit} disabled={!title.trim() || create.isPending}>
+          Create task
+        </Button>
+      </SheetContent>
+    </Sheet>
   );
 }
