@@ -1,12 +1,17 @@
-import { apiBase, useGithubStatus, useContributions, useDisconnectGithub } from "@/hooks/useGithub";
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { apiBase, useGithubStatus, useContributions, useDisconnectGithub, useRepositories } from "@/hooks/useGithub";
 import { Button } from "@/components/ui/button";
 import { ContributionsChart } from "@/components/github/ContributionsChart";
+import { cn } from "@/lib/utils";
 
 export function MyGithubPage() {
   const { data: status } = useGithubStatus();
   const disconnect = useDisconnectGithub();
   const connected = !!status?.user;
   const { data: calendar, isLoading, isError } = useContributions(connected);
+  const { data: repos = [] } = useRepositories(connected);
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   return (
     <div className="max-w-6xl mx-auto p-6 flex flex-col gap-6">
@@ -43,22 +48,39 @@ export function MyGithubPage() {
 
           <section className="rounded-lg border border-border p-4 flex flex-col gap-3 bg-surface w-full lg:w-80 shrink-0">
             <div className="font-mono text-xs uppercase tracking-wide text-ink-muted">Installations</div>
-            <p className="text-sm text-ink-muted">
-              Install the app on your account or an organization. On GitHub you choose the org and either all
-              repositories or only selected ones.
-            </p>
             <a href={`${apiBase}/github/install`}>
               <Button variant="outline" className="w-full">Install / Configure on GitHub</Button>
             </a>
             <ul className="text-sm flex flex-col gap-1">
-              {(status?.installations ?? []).map((i) => (
-                <li key={i.installationId} className="flex items-center gap-2">
-                  <span className="size-2 rounded-sm bg-ink shrink-0" />
-                  <span className="truncate">{i.accountLogin}</span>
-                  <span className="font-mono text-[11px] text-ink-muted">{i.accountType}</span>
-                  <span className="ml-auto font-mono text-[11px] text-ink-muted">{i.repositorySelection}</span>
-                </li>
-              ))}
+              {(status?.installations ?? []).map((i) => {
+                const open = expanded === i.installationId;
+                const instRepos = repos.filter((r) => r.installationId === i.installationId);
+                return (
+                  <li key={i.installationId} className="flex flex-col">
+                    <button
+                      onClick={() => setExpanded(open ? null : i.installationId)}
+                      className="flex items-center gap-2 py-1 rounded-md hover:bg-bg text-left"
+                    >
+                      <ChevronDown className={cn("size-3.5 shrink-0 text-ink-muted transition-transform", open && "rotate-180")} />
+                      <span className="size-2 rounded-sm bg-ink shrink-0" />
+                      <span className="truncate">{i.accountLogin}</span>
+                      <span className="ml-auto font-mono text-[11px] text-ink-muted">{instRepos.length} repos</span>
+                    </button>
+                    {open && (
+                      <ul className="ml-[22px] mt-1 mb-1 flex flex-col gap-0.5 border-l border-border pl-3">
+                        {instRepos.map((r) => (
+                          <li key={r.id} className="font-mono text-[11px] text-ink-muted truncate" title={r.fullName}>
+                            {r.fullName.split("/")[1] ?? r.fullName}
+                          </li>
+                        ))}
+                        {instRepos.length === 0 && (
+                          <li className="text-[11px] text-ink-muted">No repositories accessible.</li>
+                        )}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
               {(status?.installations ?? []).length === 0 && (
                 <li className="text-ink-muted text-xs">No installations yet.</li>
               )}
