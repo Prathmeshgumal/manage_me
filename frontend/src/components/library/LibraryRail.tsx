@@ -5,7 +5,7 @@ export function LibraryRail({ onOpen }: { onOpen: (tab: "shelves" | "books") => 
   return (
     <div className="w-16 shrink-0 border-l border-border bg-surface flex flex-col py-2">
       <button className={btn} onClick={() => onOpen("shelves")}>
-        <Library className="size-5" /> Shelves
+        <Library className="size-5" /> Shelf
       </button>
       <button className={btn} onClick={() => onOpen("books")}>
         <BookOpen className="size-5" /> Books

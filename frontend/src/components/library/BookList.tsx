@@ -7,7 +7,7 @@ import { useCreateBook } from "@/hooks/useLibrary";
 import { cn } from "@/lib/utils";
 
 export function BookList({ projectId, shelfId, books, variant, onOpenBook }: {
-  projectId: string; shelfId: string; books: BookSummary[]; variant: "cards" | "list"; onOpenBook: (id: string) => void;
+  projectId: string | null; shelfId: string; books: BookSummary[]; variant: "cards" | "list"; onOpenBook: (id: string) => void;
 }) {
   const create = useCreateBook(projectId);
   const [name, setName] = useState("");

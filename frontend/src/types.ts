@@ -106,7 +106,7 @@ export interface BookSummary {
   id: string; name: string; description: string | null; color: string; sortOrder: number; pageCount: number;
 }
 export interface Shelf {
-  id: string; projectId: string; name: string; description: string | null; books: BookSummary[];
+  id: string; projectId: string | null; name: string; description: string | null; books: BookSummary[];
 }
 export interface PageSummary { id: string; title: string; sortOrder: number; updatedAt: string; }
 export interface Book {

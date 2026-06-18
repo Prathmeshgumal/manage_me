@@ -5,8 +5,7 @@ import { api } from "@/lib/api";
 export function useShelf(projectId: string | null) {
   return useQuery({
     queryKey: ["library", "shelf", projectId],
-    queryFn: () => api.get<Shelf>(`/projects/${projectId}/shelf`),
-    enabled: !!projectId,
+    queryFn: () => api.get<Shelf>(projectId ? `/projects/${projectId}/shelf` : `/shelf`),
   });
 }
 

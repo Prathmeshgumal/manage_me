@@ -31,6 +31,18 @@ describe("library API", () => {
     expect(await prisma.shelf.count()).toBe(1);
   });
 
+  it("provides a single general (project-less) shelf, idempotently", async () => {
+    const a = await request(app).get("/shelf");
+    expect(a.status).toBe(200);
+    expect(a.body.projectId).toBeNull();
+    const b = await request(app).get("/shelf");
+    expect(b.body.id).toBe(a.body.id);
+    expect(await prisma.shelf.count({ where: { projectId: null } })).toBe(1);
+    // books can be created on it
+    const book = await request(app).post(`/shelves/${a.body.id}/books`).send({ name: "Inbox" });
+    expect(book.status).toBe(201);
+  });
+
   it("creates a book and lists it on the shelf with pageCount", async () => {
     const projectId = await makeProject();
     const shelf = (await request(app).get(`/projects/${projectId}/shelf`)).body;

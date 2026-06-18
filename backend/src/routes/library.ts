@@ -7,6 +7,30 @@ export const libraryRouter = Router();
 
 const iso = (d: Date) => d.toISOString();
 
+type ShelfRow = { id: string; projectId: string | null; name: string; description: string | null };
+
+async function shelfWithBooks(shelf: ShelfRow) {
+  const books = await prisma.book.findMany({
+    where: { shelfId: shelf.id },
+    orderBy: { sortOrder: "asc" },
+    include: { _count: { select: { pages: true } } },
+  });
+  return {
+    id: shelf.id, projectId: shelf.projectId, name: shelf.name, description: shelf.description,
+    books: books.map((b) => ({
+      id: b.id, name: b.name, description: b.description, color: b.color,
+      sortOrder: b.sortOrder, pageCount: b._count.pages,
+    })),
+  };
+}
+
+// General shelf: not tied to any project; one shared shelf (projectId = null).
+libraryRouter.get("/shelf", asyncHandler(async (_req, res) => {
+  let shelf = await prisma.shelf.findFirst({ where: { projectId: null } });
+  if (!shelf) shelf = await prisma.shelf.create({ data: { projectId: null, name: "General" } });
+  res.json(await shelfWithBooks(shelf));
+}));
+
 libraryRouter.get("/projects/:projectId/shelf", asyncHandler(async (req, res) => {
   const { projectId } = req.params;
   const project = await prisma.project.findUnique({ where: { id: projectId } });
@@ -16,18 +40,7 @@ libraryRouter.get("/projects/:projectId/shelf", asyncHandler(async (req, res) =>
     create: { projectId },
     update: {},
   });
-  const books = await prisma.book.findMany({
-    where: { shelfId: shelf.id },
-    orderBy: { sortOrder: "asc" },
-    include: { _count: { select: { pages: true } } },
-  });
-  res.json({
-    id: shelf.id, projectId: shelf.projectId, name: shelf.name, description: shelf.description,
-    books: books.map((b) => ({
-      id: b.id, name: b.name, description: b.description, color: b.color,
-      sortOrder: b.sortOrder, pageCount: b._count.pages,
-    })),
-  });
+  res.json(await shelfWithBooks(shelf));
 }));
 
 libraryRouter.patch("/shelves/:id", asyncHandler(async (req, res) => {

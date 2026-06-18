@@ -10,7 +10,7 @@ import { PageEditor } from "@/components/library/PageEditor";
 type Nav = { level: "shelf" | "book" | "page"; bookId?: string; pageId?: string };
 
 export function LibraryPage({ projectId, tab, onBack }: {
-  projectId: string; tab: "shelves" | "books"; onBack: () => void;
+  projectId: string | null; tab: "shelves" | "books"; onBack: () => void;
 }) {
   const { data: shelf } = useShelf(projectId);
   const updateShelf = useUpdateShelf(projectId);

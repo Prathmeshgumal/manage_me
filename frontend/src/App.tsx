@@ -104,7 +104,7 @@ export default function App() {
         <section className="flex-1 overflow-auto p-4">
           {page === "my-github" ? (
             <MyGithubPage />
-          ) : page === "library" && projectId ? (
+          ) : page === "library" ? (
             <LibraryPage projectId={projectId} tab={libraryTab} onBack={() => setPage("tasks")} />
           ) : page === "project-settings" && projectId ? (
             <ProjectSettingsPage
@@ -126,7 +126,7 @@ export default function App() {
         </section>
       </main>
 
-      {page === "tasks" && projectId && (
+      {page === "tasks" && (
         <LibraryRail onOpen={(t) => { setLibraryTab(t); setPage("library"); }} />
       )}
 
