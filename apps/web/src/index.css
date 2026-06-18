@@ -1,0 +1,92 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* shadcn semantic tokens — Signal "light / paper" */
+    --background: #FAFAF8;
+    --foreground: #1A1A18;
+    --card: #FFFFFF;
+    --card-foreground: #1A1A18;
+    --popover: #FFFFFF;
+    --popover-foreground: #1A1A18;
+    --primary: #1A1A18;
+    --primary-foreground: #FAFAF8;
+    --secondary: #F1F1EE;
+    --secondary-foreground: #1A1A18;
+    --muted: #F1F1EE;
+    --muted-foreground: #6B6B64;
+    --accent: #F1F1EE;
+    --accent-foreground: #1A1A18;
+    --destructive: #F4404A;
+    --destructive-foreground: #FFFFFF;
+    --border: #E7E7E2;
+    --input: #E7E7E2;
+    --ring: #1A1A18;
+    --radius: 0.6rem;
+
+    /* Signal extras */
+    --bg: #FAFAF8;
+    --surface: #FFFFFF;
+    --ink: #1A1A18;
+    --ink-muted: #6B6B64;
+    --p-urgent: #F4404A;
+    --p-high: #F5872B;
+    --p-medium: #E0B341;
+    --p-low: #4FA3D1;
+    --p-none: #8A8A86;
+    --font-display: "Space Grotesk", sans-serif;
+    --font-body: "IBM Plex Sans", sans-serif;
+    --font-mono: "IBM Plex Mono", monospace;
+  }
+
+  .dark {
+    --background: #131316;
+    --foreground: #ECECEE;
+    --card: #1C1C21;
+    --card-foreground: #ECECEE;
+    --popover: #1C1C21;
+    --popover-foreground: #ECECEE;
+    --primary: #ECECEE;
+    --primary-foreground: #131316;
+    --secondary: #26262C;
+    --secondary-foreground: #ECECEE;
+    --muted: #26262C;
+    --muted-foreground: #9A9AA0;
+    --accent: #26262C;
+    --accent-foreground: #ECECEE;
+    --destructive: #F4404A;
+    --destructive-foreground: #FFFFFF;
+    --border: #2A2A30;
+    --input: #2A2A30;
+    --ring: #ECECEE;
+
+    --bg: #131316;
+    --surface: #1C1C21;
+    --ink: #ECECEE;
+    --ink-muted: #9A9AA0;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
