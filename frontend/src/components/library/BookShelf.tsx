@@ -9,7 +9,7 @@ const THEMES: Record<string, ShelfTheme> = {
 };
 const theme = THEMES.oak;
 
-const PER_ROW = 10;
+const PER_ROW = 9;
 const MIN_ROWS = 4;
 
 function textOn(hex: string): string {
@@ -25,8 +25,28 @@ function hash(id: string): number {
 }
 const spineWidth = (id: string) => 22 + (hash(id) % 12); // 22–33px
 const spineHeightPct = (id: string) => 78 + (hash(id + "h") % 18); // 78–95%
+const flatWidth = (id: string) => 58 + (hash(id + "f") % 20); // 58–77px
 
-type Item = { kind: "book"; book: BookSummary } | { kind: "add" };
+type Slot = { type: "spine"; book: BookSummary } | { type: "pile"; books: BookSummary[] };
+
+// Group a row's books: occasionally pile 2–3 flat books, otherwise upright spines.
+function groupRow(books: BookSummary[]): Slot[] {
+  const slots: Slot[] = [];
+  let i = 0;
+  while (i < books.length) {
+    const b = books[i];
+    const remaining = books.length - i;
+    if (remaining >= 2 && hash(b.id) % 3 === 0) {
+      const size = Math.min(remaining, 2 + (hash(b.id + "s") % 2)); // 2–3
+      slots.push({ type: "pile", books: books.slice(i, i + size) });
+      i += size;
+    } else {
+      slots.push({ type: "spine", book: b });
+      i += 1;
+    }
+  }
+  return slots;
+}
 
 function BookSpine({ book, onOpen }: { book: BookSummary; onOpen: () => void }) {
   return (
@@ -43,12 +63,30 @@ function BookSpine({ book, onOpen }: { book: BookSummary; onOpen: () => void }) 
   );
 }
 
+function BookPile({ books, onOpen }: { books: BookSummary[]; onOpen: (id: string) => void }) {
+  return (
+    <div className="self-end shrink-0 flex flex-col gap-0.5">
+      {books.map((b) => (
+        <button
+          key={b.id}
+          onClick={() => onOpen(b.id)}
+          title={`${b.name} · ${b.pageCount} page${b.pageCount === 1 ? "" : "s"}`}
+          style={{ background: b.color, color: textOn(b.color), width: flatWidth(b.id) }}
+          className="h-4 rounded-[2px] border border-black/25 shadow-sm flex items-center px-1.5 transition-[filter] hover:brightness-110"
+        >
+          <span className="text-[9px] font-medium leading-none truncate">{b.name}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function AddSpine({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
       title="Add book"
-      style={{ width: 26, height: "70%" }}
+      style={{ width: 26, height: "68%" }}
       className="self-end shrink-0 rounded-t-[3px] border-2 border-dashed border-white/40 text-white/70 flex items-center justify-center hover:bg-white/10 hover:text-white"
     >
       <Plus className="size-4" />
@@ -59,46 +97,47 @@ function AddSpine({ onClick }: { onClick: () => void }) {
 export function BookShelf({ books, onOpenBook, onAddBook }: {
   books: BookSummary[]; onOpenBook: (id: string) => void; onAddBook: (name: string) => void;
 }) {
-  const [adding, setAdding] = useState(false);
+  const [addingRow, setAddingRow] = useState<number | null>(null);
   const [name, setName] = useState("");
 
-  const items: Item[] = [...books.map((b) => ({ kind: "book" as const, book: b })), { kind: "add" as const }];
-  const rows: Item[][] = [];
-  for (let i = 0; i < items.length; i += PER_ROW) rows.push(items.slice(i, i + PER_ROW));
+  const rows: BookSummary[][] = [];
+  for (let i = 0; i < books.length; i += PER_ROW) rows.push(books.slice(i, i + PER_ROW));
   while (rows.length < MIN_ROWS) rows.push([]);
 
   const submit = () => {
     if (name.trim()) onAddBook(name.trim());
     setName("");
-    setAdding(false);
+    setAddingRow(null);
   };
 
   return (
     <div className="h-full rounded-lg p-2 shadow-inner" style={{ background: theme.frameLight, border: `5px solid ${theme.frame}` }}>
       <div className="h-full rounded flex flex-col overflow-hidden" style={{ background: theme.back }}>
-        {rows.map((row, i) => (
-          <div key={i} className="flex-1 min-h-0 flex flex-col justify-end">
+        {rows.map((rowBooks, ri) => (
+          <div key={ri} className="flex-1 min-h-0 flex flex-col justify-end">
             <div className="flex items-end gap-1.5 px-3 flex-1 min-h-0 overflow-hidden">
-              {row.map((it) =>
-                it.kind === "book" ? (
-                  <BookSpine key={it.book.id} book={it.book} onOpen={() => onOpenBook(it.book.id)} />
-                ) : adding ? (
-                  <input
-                    key="add-input"
-                    autoFocus
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") submit();
-                      if (e.key === "Escape") { setName(""); setAdding(false); }
-                    }}
-                    onBlur={submit}
-                    placeholder="Book name"
-                    className="self-center w-32 rounded bg-white text-ink text-xs px-2 py-1 outline-none"
-                  />
+              {groupRow(rowBooks).map((s) =>
+                s.type === "spine" ? (
+                  <BookSpine key={s.book.id} book={s.book} onOpen={() => onOpenBook(s.book.id)} />
                 ) : (
-                  <AddSpine key="add" onClick={() => setAdding(true)} />
+                  <BookPile key={s.books[0].id} books={s.books} onOpen={onOpenBook} />
                 ),
+              )}
+              {addingRow === ri ? (
+                <input
+                  autoFocus
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") submit();
+                    if (e.key === "Escape") { setName(""); setAddingRow(null); }
+                  }}
+                  onBlur={submit}
+                  placeholder="Book name"
+                  className="self-center w-32 rounded bg-white text-ink text-xs px-2 py-1 outline-none"
+                />
+              ) : (
+                <AddSpine onClick={() => { setName(""); setAddingRow(ri); }} />
               )}
             </div>
             <div

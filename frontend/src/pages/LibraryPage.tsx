@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useShelf, useBook, useDeleteBook, useCreateBook } from "@/hooks/useLibrary";
 import { BookList } from "@/components/library/BookList";
 import { BookShelf } from "@/components/library/BookShelf";
+import { randomBookColor } from "@/lib/bookColors";
 import { PageList } from "@/components/library/PageList";
 import { PageEditor } from "@/components/library/PageEditor";
 
@@ -48,17 +49,17 @@ export function LibraryPage({ projectId, tab, initialBookId, onBack }: {
       {nav.level === "shelf" && (
         tab === "shelves" ? (
           <div className="flex flex-col lg:flex-row gap-6 items-stretch h-[74vh]">
-            <div className="flex-1 min-w-0 w-full overflow-auto">
-              <BookList projectId={projectId} shelfId={shelf.id} books={shelf.books}
-                variant="list"
-                onOpenBook={(id) => setNav({ level: "book", bookId: id })} />
-            </div>
             <div className="flex-1 min-w-0 w-full">
               <BookShelf
                 books={shelf.books}
                 onOpenBook={(id) => setNav({ level: "book", bookId: id })}
-                onAddBook={(name) => createBook.mutate({ shelfId: shelf.id, input: { name } })}
+                onAddBook={(name) => createBook.mutate({ shelfId: shelf.id, input: { name, color: randomBookColor() } })}
               />
+            </div>
+            <div className="flex-1 min-w-0 w-full overflow-auto">
+              <BookList projectId={projectId} shelfId={shelf.id} books={shelf.books}
+                variant="list"
+                onOpenBook={(id) => setNav({ level: "book", bookId: id })} />
             </div>
           </div>
         ) : (

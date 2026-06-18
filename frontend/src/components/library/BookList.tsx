@@ -4,6 +4,7 @@ import type { BookSummary } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCreateBook } from "@/hooks/useLibrary";
+import { randomBookColor } from "@/lib/bookColors";
 import { cn } from "@/lib/utils";
 
 export function BookList({ projectId, shelfId, books, variant, onOpenBook }: {
@@ -13,7 +14,7 @@ export function BookList({ projectId, shelfId, books, variant, onOpenBook }: {
   const [name, setName] = useState("");
   const add = () => {
     if (!name.trim()) return;
-    create.mutate({ shelfId, input: { name: name.trim() } }, { onSuccess: () => setName("") });
+    create.mutate({ shelfId, input: { name: name.trim(), color: randomBookColor() } }, { onSuccess: () => setName("") });
   };
 
   return (
