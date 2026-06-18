@@ -125,7 +125,7 @@ export function ListView({ projectId, dueFilter, onOpenTask }: {
         {STATUS_ORDER.map((status) => (
           <StatusGroup key={status} status={status} rows={rowsFor(status)} onOpenTask={onOpenTask} />
         ))}
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeTask ? (
             <RowView task={activeTask} className="bg-surface border border-border rounded-lg shadow-xl cursor-grabbing" />
           ) : null}

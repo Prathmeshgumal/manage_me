@@ -119,7 +119,7 @@ export function BoardView({ groupBy, projectId, dueFilter, onOpenTask, onCreateI
           );
         })}
       </div>
-      <DragOverlay>
+      <DragOverlay dropAnimation={null}>
         {activeTask ? (
           <TaskCardView task={activeTask} className="w-72 shadow-xl rotate-2 cursor-grabbing" />
         ) : null}
