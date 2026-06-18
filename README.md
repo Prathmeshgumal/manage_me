@@ -73,6 +73,34 @@ pnpm build           # production build to dist/
 - `C` — new task
 - `/` — search
 
+## GitHub integration (optional)
+
+Connecting GitHub (to see your contribution chart and, later, repo/org context) needs a **GitHub App** you register once. Without it, the rest of the app works fine.
+
+**1. Create the GitHub App** — github.com → Settings → Developer settings → GitHub Apps → New GitHub App:
+
+- **Callback URL:** `http://localhost:4000/github/callback` (add your deployed API URL too in production).
+- **Setup URL:** `http://localhost:4000/github/setup`, and tick "Redirect on update".
+- **Expire user authorization tokens:** **OFF** (we store a long-lived user token).
+- **Webhook:** Off.
+- **Repository permissions:** Metadata, Contents, Issues, Pull requests → **Read-only** (used by the upcoming project dashboard).
+- Generate a **private key** (downloads a `.pem`). Note the **App ID**, **Client ID**, a generated **Client secret**, and the app **slug** (the `…/apps/<slug>` part of its public page URL).
+
+**2. Fill `backend/.env`:**
+
+```bash
+# base64-encode the private key so it survives env newlines:
+base64 -w0 your-app.private-key.pem        # value -> GITHUB_APP_PRIVATE_KEY_BASE64
+openssl rand -base64 32                     # value -> GITHUB_TOKEN_ENC_KEY (must be 32 bytes)
+openssl rand -hex 32                        # value -> GITHUB_STATE_SECRET
+```
+
+Set `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, `GITHUB_APP_CLIENT_ID`, `GITHUB_APP_CLIENT_SECRET`, `GITHUB_APP_PRIVATE_KEY_BASE64`, the two generated secrets, `GITHUB_OAUTH_REDIRECT_URI=http://localhost:4000/github/callback`, and `FRONTEND_URL=http://localhost:5173`. None of these are committed.
+
+**3. Use it:** restart the backend, then in the app: sidebar → **Connect GitHub** → **Authorize GitHub** (approve on GitHub) → **Install / Configure on GitHub** (pick account/org + repos) → sidebar → **My GitHub** shows your contribution chart. **Disconnect** clears the stored token.
+
+> The `/github/*` backend logic is covered by unit + route tests with GitHub mocked, so the test suite runs without a configured App.
+
 ## Deployment
 
 ### Backend → Render
