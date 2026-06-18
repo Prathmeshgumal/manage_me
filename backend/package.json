@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@9.12.0",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsup",
@@ -20,6 +22,9 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@octokit/auth-app": "^8.2.0",
+    "@octokit/graphql": "^9.0.3",
+    "@octokit/request": "^10.0.10",
     "@prisma/client": "^5.18.0",
     "cors": "^2.8.5",
     "express": "^4.19.2",
