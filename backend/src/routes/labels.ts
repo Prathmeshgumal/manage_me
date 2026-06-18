@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createLabelSchema } from "../schemas.js";
+import { createLabelSchema, updateLabelSchema } from "../schemas.js";
 import { prisma } from "../prisma.js";
 import { asyncHandler } from "../errors.js";
 
@@ -15,6 +15,10 @@ labelsRouter.get("/", asyncHandler(async (_req, res) => {
 labelsRouter.post("/", asyncHandler(async (req, res) => {
   const data = createLabelSchema.parse(req.body);
   res.status(201).json(ser(await prisma.label.create({ data })));
+}));
+labelsRouter.patch("/:id", asyncHandler(async (req, res) => {
+  const data = updateLabelSchema.parse(req.body);
+  res.json(ser(await prisma.label.update({ where: { id: req.params.id }, data })));
 }));
 labelsRouter.delete("/:id", asyncHandler(async (req, res) => {
   await prisma.label.delete({ where: { id: req.params.id } });

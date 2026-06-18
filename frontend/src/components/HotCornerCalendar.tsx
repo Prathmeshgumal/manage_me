@@ -51,7 +51,15 @@ export function HotCornerCalendar() {
       ref={popupRef}
       className="fixed bottom-4 right-4 z-50 origin-bottom-right rounded-xl border border-border bg-surface shadow-2xl animate-in fade-in zoom-in-95 slide-in-from-bottom-4 slide-in-from-right-4"
     >
-      <Calendar mode="single" selected={now} defaultMonth={now} className="rounded-xl" />
+      <Calendar
+        mode="single"
+        selected={now}
+        defaultMonth={now}
+        captionLayout="dropdown"
+        startMonth={new Date(now.getFullYear() - 3, 0)}
+        endMonth={new Date(now.getFullYear() + 6, 11)}
+        className="rounded-xl"
+      />
     </div>
   );
 }

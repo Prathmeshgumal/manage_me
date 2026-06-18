@@ -44,7 +44,11 @@ export function DatePicker({ value, onChange, placeholder = "Set due date", clas
         <Calendar
           mode="single"
           selected={selected}
+          defaultMonth={selected}
           onSelect={(d) => { onChange(d ? toYMD(d) : null); setOpen(false); }}
+          captionLayout="dropdown"
+          startMonth={new Date(new Date().getFullYear() - 3, 0)}
+          endMonth={new Date(new Date().getFullYear() + 6, 11)}
         />
         {selected && (
           <div className="border-t border-border p-2">

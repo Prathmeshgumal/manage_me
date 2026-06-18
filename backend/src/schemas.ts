@@ -51,4 +51,6 @@ export const createLabelSchema = z.object({
   name: z.string().min(1).max(100),
   color: HEX.default("#8A8A86"),
 });
+export const updateLabelSchema = createLabelSchema.partial();
 export type CreateLabelInput = z.infer<typeof createLabelSchema>;
+export type UpdateLabelInput = z.infer<typeof updateLabelSchema>;
