@@ -6,6 +6,7 @@ import { tasksRouter } from "./routes/tasks.js";
 import { projectsRouter } from "./routes/projects.js";
 import { labelsRouter } from "./routes/labels.js";
 import { githubRouter } from "./github/routes.js";
+import { libraryRouter } from "./routes/library.js";
 
 export function createApp() {
   const app = express();
@@ -17,6 +18,7 @@ export function createApp() {
   app.use("/projects", projectsRouter);
   app.use("/labels", labelsRouter);
   app.use("/github", githubRouter);
+  app.use(libraryRouter);
 
   app.use((_req, _res, next) => next(new AppError(404, "Not found")));
   app.use(errorMiddleware);
