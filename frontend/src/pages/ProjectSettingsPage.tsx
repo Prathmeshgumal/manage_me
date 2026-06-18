@@ -5,15 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProjects, useUpdateProject, useDeleteProject } from "@/hooks/useProjects";
 import { useGithubStatus, useRepositories } from "@/hooks/useGithub";
+import { useShelf } from "@/hooks/useLibrary";
 import { RepoFileBrowser } from "@/components/github/RepoFileBrowser";
+import { BookList } from "@/components/library/BookList";
 import { cn } from "@/lib/utils";
 
 const SWATCHES = ["#4FA3D1", "#E0B341", "#F5872B", "#F4404A", "#8A8A86", "#7C5CFC", "#3FB68B"];
 const NONE = "none";
 
-export function ProjectSettingsPage({ projectId, onBack, onDeleted }: {
-  projectId: string; onBack: () => void; onDeleted: () => void;
+export function ProjectSettingsPage({ projectId, onBack, onDeleted, onOpenBook }: {
+  projectId: string; onBack: () => void; onDeleted: () => void; onOpenBook: (bookId: string) => void;
 }) {
+  const { data: shelf } = useShelf(projectId);
   const { data: projects = [] } = useProjects();
   const project = projects.find((p) => p.id === projectId);
   const update = useUpdateProject();
@@ -103,6 +106,22 @@ export function ProjectSettingsPage({ projectId, onBack, onDeleted }: {
               </Select>
             ) : (
               <p className="text-xs text-ink-muted">Install the app on GitHub (My GitHub) to link a repository.</p>
+            )}
+          </section>
+
+          {/* Library / Books */}
+          <section className="rounded-lg border border-border p-4 flex flex-col gap-3 bg-surface">
+            <div className="font-mono text-xs uppercase tracking-wide text-ink-muted">Books</div>
+            {shelf ? (
+              <BookList
+                projectId={projectId}
+                shelfId={shelf.id}
+                books={shelf.books}
+                variant="list"
+                onOpenBook={onOpenBook}
+              />
+            ) : (
+              <p className="text-xs text-ink-muted">Loading…</p>
             )}
           </section>
 

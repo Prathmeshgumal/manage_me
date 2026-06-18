@@ -8,12 +8,14 @@ import { PageEditor } from "@/components/library/PageEditor";
 
 type Nav = { level: "shelf" | "book" | "page"; bookId?: string; pageId?: string };
 
-export function LibraryPage({ projectId, tab, onBack }: {
-  projectId: string | null; tab: "shelves" | "books"; onBack: () => void;
+export function LibraryPage({ projectId, tab, initialBookId, onBack }: {
+  projectId: string | null; tab: "shelves" | "books"; initialBookId?: string | null; onBack: () => void;
 }) {
   const { data: shelf } = useShelf(projectId);
   const deleteBook = useDeleteBook(projectId);
-  const [nav, setNav] = useState<Nav>({ level: "shelf" });
+  const [nav, setNav] = useState<Nav>(
+    initialBookId ? { level: "book", bookId: initialBookId } : { level: "shelf" },
+  );
   const { data: book } = useBook(nav.bookId ?? null);
 
   if (!shelf) return <div className="p-6 text-sm text-ink-muted">Loading library…</div>;
