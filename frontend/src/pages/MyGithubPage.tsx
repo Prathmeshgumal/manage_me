@@ -19,7 +19,7 @@ export function MyGithubPage({ onGoToSettings }: { onGoToSettings: () => void })
       ) : isError || !calendar ? (
         <p className="text-sm text-ink-muted">Couldn't load contributions. Try reconnecting in settings.</p>
       ) : (
-        <section className="rounded-lg border border-border p-4 bg-surface">
+        <section className="rounded-lg border border-border p-4 bg-surface overflow-x-auto">
           <ContributionsChart calendar={calendar} />
         </section>
       )}

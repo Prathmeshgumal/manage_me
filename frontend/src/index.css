@@ -37,6 +37,12 @@
     --p-medium: #E0B341;
     --p-low: #4FA3D1;
     --p-none: #8A8A86;
+    /* GitHub contribution scale (light) */
+    --gh-0: #ebedf0;
+    --gh-1: #9be9a8;
+    --gh-2: #40c463;
+    --gh-3: #30a14e;
+    --gh-4: #216e39;
     --font-display: "Space Grotesk", sans-serif;
     --font-body: "IBM Plex Sans", sans-serif;
     --font-mono: "IBM Plex Mono", monospace;
@@ -67,6 +73,12 @@
     --surface: #1C1C21;
     --ink: #ECECEE;
     --ink-muted: #9A9AA0;
+    /* GitHub contribution scale (dark) */
+    --gh-0: #161b22;
+    --gh-1: #0e4429;
+    --gh-2: #006d32;
+    --gh-3: #26a641;
+    --gh-4: #39d353;
   }
 
   * {
