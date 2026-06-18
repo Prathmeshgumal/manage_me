@@ -7,11 +7,14 @@ import { LabelDialog } from "@/components/label/LabelDialog";
 import type { Label } from "@/types";
 import { cn } from "@/lib/utils";
 
-export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggle }: {
+export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggle, onOpenTasks, onOpenMyGithub, onOpenSettingsGithub }: {
   selectedProjectId: string | null;
   onSelectProject: (id: string | null) => void;
   collapsed: boolean;
   onToggle: () => void;
+  onOpenTasks: () => void;
+  onOpenMyGithub: () => void;
+  onOpenSettingsGithub: () => void;
 }) {
   const { data: projects = [] } = useProjects();
   const { data: labels = [] } = useLabels();
@@ -36,13 +39,15 @@ export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggl
           <PanelLeftClose className="size-4" />
         </button>
       </div>
-      <nav className="text-sm">
+      <nav className="text-sm flex flex-col gap-1">
         <button
-          onClick={() => onSelectProject(null)}
+          onClick={() => { onSelectProject(null); onOpenTasks(); }}
           className={cn("w-full text-left px-2 py-1 rounded-md hover:bg-bg", !selectedProjectId && "bg-bg font-medium")}
         >
           All tasks
         </button>
+        <button onClick={onOpenMyGithub} className="w-full text-left px-2 py-1 rounded-md hover:bg-bg">My GitHub</button>
+        <button onClick={onOpenSettingsGithub} className="w-full text-left px-2 py-1 rounded-md hover:bg-bg">Connect GitHub</button>
       </nav>
       <div>
         <div className="flex items-center justify-between mb-2">

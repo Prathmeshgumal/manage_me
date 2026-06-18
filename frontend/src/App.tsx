@@ -8,11 +8,16 @@ import { QuickCreateDialog } from "@/components/task/QuickCreateDialog";
 import { TaskDetailPanel } from "@/components/task/TaskDetailPanel";
 import { CommandPalette } from "@/components/command/CommandPalette";
 import { HotCornerCalendar } from "@/components/HotCornerCalendar";
+import { SettingsGithubPage } from "@/pages/SettingsGithubPage";
+import { MyGithubPage } from "@/pages/MyGithubPage";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTasks } from "@/hooks/useTasks";
 import type { DueBucket } from "@/lib/dueDate";
 
+type Page = "tasks" | "my-github" | "settings-github";
+
 export default function App() {
+  const [page, setPage] = useState<Page>("tasks");
   const [view, setView] = useState<ViewMode>("board");
   const [groupBy, setGroupBy] = useState<GroupBy>("status");
   const [dueFilter, setDueFilter] = useState<DueBucket | "ALL">("ALL");
@@ -56,6 +61,15 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // After the GitHub OAuth/install redirect, land on the settings page and clean the URL.
+  useEffect(() => {
+    const p = new URLSearchParams(location.search);
+    if (p.has("connected") || p.has("installed") || p.has("error")) {
+      setPage("settings-github");
+      history.replaceState(null, "", location.pathname);
+    }
+  }, []);
+
   return (
     <div className="flex">
       <Sidebar
@@ -63,22 +77,31 @@ export default function App() {
         onSelectProject={setProjectId}
         collapsed={sidebarCollapsed}
         onToggle={toggleSidebar}
+        onOpenTasks={() => setPage("tasks")}
+        onOpenMyGithub={() => setPage("my-github")}
+        onOpenSettingsGithub={() => setPage("settings-github")}
       />
       <main className="flex-1 h-screen flex flex-col">
-        <Topbar
-          view={view}
-          onView={setView}
-          groupBy={groupBy}
-          onGroupBy={setGroupBy}
-          dueFilter={dueFilter}
-          onDueFilter={setDueFilter}
-          onNewTask={() => openCreate()}
-          onOpenPalette={() => setPaletteOpen(true)}
-          sidebarCollapsed={sidebarCollapsed}
-          onToggleSidebar={toggleSidebar}
-        />
+        {page === "tasks" && (
+          <Topbar
+            view={view}
+            onView={setView}
+            groupBy={groupBy}
+            onGroupBy={setGroupBy}
+            dueFilter={dueFilter}
+            onDueFilter={setDueFilter}
+            onNewTask={() => openCreate()}
+            onOpenPalette={() => setPaletteOpen(true)}
+            sidebarCollapsed={sidebarCollapsed}
+            onToggleSidebar={toggleSidebar}
+          />
+        )}
         <section className="flex-1 overflow-auto p-4">
-          {view === "board" ? (
+          {page === "my-github" ? (
+            <MyGithubPage onGoToSettings={() => setPage("settings-github")} />
+          ) : page === "settings-github" ? (
+            <SettingsGithubPage />
+          ) : view === "board" ? (
             <BoardView
               groupBy={groupBy}
               projectId={projectId}
