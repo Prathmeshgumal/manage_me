@@ -1,0 +1,22 @@
+# Render Blueprint for the MySchedule backend.
+# Create a Web Service with Root Directory = backend, or use this Blueprint.
+# Set DATABASE_URL (your Neon pooled connection string) in the Render dashboard.
+services:
+  - type: web
+    name: myschedule-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: >-
+      corepack enable &&
+      pnpm install --frozen-lockfile &&
+      pnpm prisma generate &&
+      pnpm build &&
+      pnpm prisma migrate deploy
+    startCommand: pnpm start
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: PORT
+        value: 10000

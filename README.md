@@ -2,23 +2,21 @@
 
 A fast, keyboard-driven task prioritization board — a personal take on Linear, built with the **Signal** visual identity (color reserved for priority; a heat-spine on every card). Web first, mobile app planned.
 
-This is a pnpm monorepo: the React frontend (`apps/web`) and Express API (`apps/api`) deploy separately, sharing a typed contract (`packages/shared`).
+Two independent projects in one repo, each deployed on its own:
+
+```
+backend/    Express + Prisma API   → Render
+frontend/   React + Vite SPA        → Vercel
+```
+
+They share no build tooling — each has its own `package.json`, install, and lockfile. The API contract types live in `frontend/src/types.ts` and `backend/src/schemas.ts` (kept in sync by hand).
 
 ## Stack
 
-- **Monorepo:** pnpm workspaces + Turborepo
-- **Frontend:** React + Vite + TypeScript, Tailwind, shadcn/ui, TanStack Query, dnd-kit, cmdk → Vercel
 - **Backend:** Express + TypeScript, Prisma, Zod → Render
+- **Frontend:** React + Vite + TypeScript, Tailwind, shadcn/ui, TanStack Query, dnd-kit, cmdk → Vercel
 - **Database:** PostgreSQL (Neon)
 - **Tests:** Vitest
-
-## Layout
-
-```
-apps/web        React app (Vercel)
-apps/api        Express API (Render)
-packages/shared Zod schemas + TS types (the API contract, used by both)
-```
 
 ## Prerequisites
 
@@ -28,43 +26,46 @@ packages/shared Zod schemas + TS types (the API contract, used by both)
 
 ## Local development
 
+Each project is set up and run independently — two terminals.
+
+### Backend
+
 ```bash
-# 1. Install
+cd backend
 pnpm install
-
-# 2. Configure the API database
-cp apps/api/.env.example apps/api/.env
-#   edit apps/api/.env and set DATABASE_URL to your Postgres/Neon URL
-
-# 3. Create the schema (and generate the Prisma client)
-pnpm --filter @myschedule/api prisma:migrate
-
-# 4. (optional) Load demo data
-pnpm --filter @myschedule/api prisma:seed
-
-# 5. Point the web app at the API
-cp apps/web/.env.example apps/web/.env   # defaults to http://localhost:4000
-
-# 6. Run both apps
-pnpm dev
+cp .env.example .env          # set DATABASE_URL to your Postgres/Neon URL
+pnpm prisma:migrate           # create schema + generate the Prisma client
+pnpm prisma:seed              # (optional) load demo data
+pnpm dev                      # http://localhost:4000  (health at /health)
 ```
 
-- API: http://localhost:4000 (health at `/health`)
-- Web: http://localhost:5173
+### Frontend
+
+```bash
+cd frontend
+pnpm install
+cp .env.example .env          # defaults to VITE_API_URL=http://localhost:4000
+pnpm dev                      # http://localhost:5173
+```
 
 > **Neon note:** the free tier auto-suspends an idle database, so the first request after a pause may be slow or transiently fail while the compute wakes — retry once.
 
 ## Useful commands
 
+Run inside `backend/` or `frontend/`:
+
 ```bash
-pnpm test                                  # all test suites (shared + api)
-pnpm build                                 # build every workspace
-pnpm --filter @myschedule/api test         # API tests — DESTRUCTIVE (see note)
-pnpm --filter @myschedule/web lint         # typecheck the web app
-pnpm --filter @myschedule/api prisma:seed  # reset + load demo data
+# backend
+pnpm test            # API tests — DESTRUCTIVE (see note)
+pnpm build           # bundle to dist/ (tsup)
+pnpm prisma:seed     # reset + load demo data
+
+# frontend
+pnpm lint            # typecheck
+pnpm build           # production build to dist/
 ```
 
-> **The API tests are destructive.** They clear the tables (`deleteMany`) against whatever `DATABASE_URL` is set. Point `apps/api/.env` at a **separate test database** before running them, or re-seed afterwards with `pnpm --filter @myschedule/api prisma:seed`.
+> **The backend tests are destructive.** They clear the tables (`deleteMany`) against whatever `DATABASE_URL` is set. Point `backend/.env` at a **separate test database** before running them, or re-seed afterwards with `pnpm prisma:seed`.
 
 ## Keyboard shortcuts
 
@@ -74,19 +75,19 @@ pnpm --filter @myschedule/api prisma:seed  # reset + load demo data
 
 ## Deployment
 
-### API → Render
+### Backend → Render
 
-Use `apps/api/render.yaml` (Blueprint) or a manual Web Service:
+New Web Service, **Root Directory = `backend`** (or use `backend/render.yaml`):
 
-- **Build:** `corepack enable && pnpm install --frozen-lockfile && pnpm --filter @myschedule/api prisma generate && pnpm --filter @myschedule/api build && pnpm --filter @myschedule/api prisma migrate deploy`
-- **Start:** `pnpm --filter @myschedule/api start`
+- **Build:** `corepack enable && pnpm install --frozen-lockfile && pnpm prisma generate && pnpm build && pnpm prisma migrate deploy`
+- **Start:** `pnpm start`
 - **Env:** `DATABASE_URL` (your Neon pooled connection string)
 - **Health check:** `/health`
 
-### Web → Vercel
+### Frontend → Vercel
 
-- **Root Directory:** `apps/web` (Vercel auto-installs the pnpm workspace from the repo root)
-- **Framework:** Vite (auto-detected; `apps/web/vercel.json` is included)
+- **Root Directory:** `frontend`
+- **Framework:** Vite (auto-detected; `frontend/vercel.json` included)
 - **Env:** `VITE_API_URL` = your deployed Render API URL (e.g. `https://myschedule-api.onrender.com`)
 
 The API enables permissive CORS, so the Vercel frontend can call the Render API directly.

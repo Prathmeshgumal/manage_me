@@ -1,6 +1,6 @@
 # MySchedule — Project Plan
 
-A self-hosted task & project planning tool — our own take on Notion/Linear. Web portal first, mobile app later. Built as a monorepo with separately deployed frontend (Vercel) and backend (Render), backed by Postgres (Neon).
+A self-hosted task & project planning tool — our own take on Notion/Linear. Web portal first, mobile app later. Two independent projects in one repo — `frontend/` (Vercel) and `backend/` (Render) — backed by Postgres (Neon).
 
 ## Vision
 
@@ -8,10 +8,10 @@ A fast, keyboard-driven workspace for personal task planning, project planning, 
 
 ## Tech Stack
 
-- **Monorepo:** pnpm workspaces + Turborepo
+- **Structure:** two standalone projects — `frontend/` and `backend/` (each its own package + lockfile)
 - **Frontend:** React + Vite + TypeScript, shadcn/ui, Tailwind, TanStack Query, dnd-kit, cmdk → Vercel
 - **Backend:** Express + TypeScript, Prisma, Zod → Render
-- **Shared:** `packages/shared` — Zod schemas + TS types (API contract)
+- **API contract:** types in `frontend/src/types.ts` + `backend/src/schemas.ts` (kept in sync)
 - **Database:** Postgres on Neon
 - **Testing:** Vitest
 
@@ -23,10 +23,10 @@ A fast, keyboard-driven workspace for personal task planning, project planning, 
 
 Single-user, no auth. Clone the core feel of Linear's issue board.
 
-- [x] Monorepo scaffold (pnpm + Turborepo, `apps/web`, `apps/api`, `packages/shared`)
+- [x] Project scaffold (standalone `frontend/` + `backend/`)
 - [x] Postgres + Prisma schema: Task, Project, Label, TaskLabel
 - [x] REST API: tasks (CRUD + filter), projects (CRUD), labels (CRUD), Zod validation, error middleware
-- [x] Shared Zod schemas / TS types consumed by both ends
+- [x] Typed API contract (`backend/src/schemas.ts` + `frontend/src/types.ts`)
 - [x] Frontend shell: sidebar + main area, shadcn/ui, dark mode toggle
 - [x] Board view with **Status ↔ Priority** grouping toggle
 - [x] List view
