@@ -35,10 +35,11 @@ libraryRouter.get("/projects/:projectId/shelf", asyncHandler(async (req, res) =>
   const { projectId } = req.params;
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) throw new AppError(404, "Project not found");
+  // The shelf always mirrors the project's name.
   const shelf = await prisma.shelf.upsert({
     where: { projectId },
-    create: { projectId },
-    update: {},
+    create: { projectId, name: project.name },
+    update: { name: project.name },
   });
   res.json(await shelfWithBooks(shelf));
 }));
