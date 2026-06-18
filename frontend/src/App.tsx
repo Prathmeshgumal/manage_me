@@ -24,7 +24,6 @@ export default function App() {
   const [groupBy, setGroupBy] = useState<GroupBy>("status");
   const [dueFilter, setDueFilter] = useState<DueBucket | "ALL">("ALL");
   const [projectId, setProjectId] = useState<string | null>(null);
-  const [libraryTab, setLibraryTab] = useState<"shelves" | "books">("shelves");
   const [libraryBookId, setLibraryBookId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => localStorage.getItem("sidebarCollapsed") === "true",
@@ -106,13 +105,13 @@ export default function App() {
           {page === "my-github" ? (
             <MyGithubPage />
           ) : page === "library" ? (
-            <LibraryPage projectId={projectId} tab={libraryTab} initialBookId={libraryBookId} onBack={() => setPage("tasks")} />
+            <LibraryPage projectId={projectId} initialBookId={libraryBookId} onBack={() => setPage("tasks")} />
           ) : page === "project-settings" && projectId ? (
             <ProjectSettingsPage
               projectId={projectId}
               onBack={() => setPage("tasks")}
               onDeleted={() => { setProjectId(null); setPage("tasks"); }}
-              onOpenBook={(bookId) => { setLibraryTab("books"); setLibraryBookId(bookId); setPage("library"); }}
+              onOpenBook={(bookId) => { setLibraryBookId(bookId); setPage("library"); }}
             />
           ) : view === "board" ? (
             <BoardView
@@ -129,7 +128,7 @@ export default function App() {
       </main>
 
       {page === "tasks" && (
-        <LibraryRail onOpen={(t) => { setLibraryTab(t); setLibraryBookId(null); setPage("library"); }} />
+        <LibraryRail onOpen={() => { setLibraryBookId(null); setPage("library"); }} />
       )}
 
       <QuickCreateDialog
