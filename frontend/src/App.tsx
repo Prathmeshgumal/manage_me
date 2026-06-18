@@ -10,11 +10,12 @@ import { CommandPalette } from "@/components/command/CommandPalette";
 import { HotCornerCalendar } from "@/components/HotCornerCalendar";
 import { SettingsGithubPage } from "@/pages/SettingsGithubPage";
 import { MyGithubPage } from "@/pages/MyGithubPage";
+import { ProjectSettingsPage } from "@/pages/ProjectSettingsPage";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTasks } from "@/hooks/useTasks";
 import type { DueBucket } from "@/lib/dueDate";
 
-type Page = "tasks" | "my-github" | "settings-github";
+type Page = "tasks" | "my-github" | "settings-github" | "project-settings";
 
 export default function App() {
   const [page, setPage] = useState<Page>("tasks");
@@ -80,6 +81,7 @@ export default function App() {
         onOpenTasks={() => setPage("tasks")}
         onOpenMyGithub={() => setPage("my-github")}
         onOpenSettingsGithub={() => setPage("settings-github")}
+        onSelectProjectRow={(id) => { setProjectId(id); setPage("tasks"); }}
       />
       <main className="flex-1 h-screen flex flex-col">
         {page === "tasks" && (
@@ -94,6 +96,8 @@ export default function App() {
             onOpenPalette={() => setPaletteOpen(true)}
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={toggleSidebar}
+            projectSelected={!!projectId}
+            onOpenProjectSettings={() => setPage("project-settings")}
           />
         )}
         <section className="flex-1 overflow-auto p-4">
@@ -101,6 +105,12 @@ export default function App() {
             <MyGithubPage onGoToSettings={() => setPage("settings-github")} />
           ) : page === "settings-github" ? (
             <SettingsGithubPage />
+          ) : page === "project-settings" && projectId ? (
+            <ProjectSettingsPage
+              projectId={projectId}
+              onBack={() => setPage("tasks")}
+              onDeleted={() => { setProjectId(null); setPage("tasks"); }}
+            />
           ) : view === "board" ? (
             <BoardView
               groupBy={groupBy}

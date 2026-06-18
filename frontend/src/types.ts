@@ -87,6 +87,11 @@ export interface GithubRepo {
   installationId: number;
 }
 
+export type RepoDirEntry = { name: string; path: string; type: "dir" | "file" };
+export type RepoContents =
+  | { type: "dir"; entries: RepoDirEntry[] }
+  | { type: "file"; name: string; path: string; size: number; content: string; isBinary: boolean; tooLarge: boolean };
+
 export interface CreateLabelInput {
   name: string;
   color?: string;

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { GithubRepo } from "@/types";
+import type { GithubRepo, RepoContents } from "@/types";
 import { api } from "@/lib/api";
 
 export const apiBase = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -30,6 +30,21 @@ export function useRepositories(enabled: boolean) {
     queryKey: ["github", "repositories"],
     queryFn: () => api.get<GithubRepo[]>("/github/repositories"),
     enabled,
+    retry: false,
+  });
+}
+
+export function useRepoContents(params: { installationId: number; owner: string; repo: string; path: string } | null) {
+  return useQuery({
+    queryKey: ["github", "contents", params],
+    queryFn: () => {
+      const p = params!;
+      const qs = new URLSearchParams({
+        installationId: String(p.installationId), owner: p.owner, repo: p.repo, path: p.path,
+      }).toString();
+      return api.get<RepoContents>(`/github/repos/contents?${qs}`);
+    },
+    enabled: !!params,
     retry: false,
   });
 }

@@ -1,4 +1,4 @@
-import { Moon, Sun, Plus, Search, CalendarClock, PanelLeftOpen } from "lucide-react";
+import { Moon, Sun, Plus, Search, CalendarClock, PanelLeftOpen, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTheme } from "@/components/theme/ThemeProvider";
@@ -8,12 +8,13 @@ import { cn } from "@/lib/utils";
 export type ViewMode = "board" | "list";
 export type GroupBy = "status" | "priority" | "due";
 
-export function Topbar({ view, onView, groupBy, onGroupBy, dueFilter, onDueFilter, onNewTask, onOpenPalette, sidebarCollapsed, onToggleSidebar }: {
+export function Topbar({ view, onView, groupBy, onGroupBy, dueFilter, onDueFilter, onNewTask, onOpenPalette, sidebarCollapsed, onToggleSidebar, projectSelected, onOpenProjectSettings }: {
   view: ViewMode; onView: (v: ViewMode) => void;
   groupBy: GroupBy; onGroupBy: (g: GroupBy) => void;
   dueFilter: DueBucket | "ALL"; onDueFilter: (f: DueBucket | "ALL") => void;
   onNewTask: () => void; onOpenPalette: () => void;
   sidebarCollapsed: boolean; onToggleSidebar: () => void;
+  projectSelected: boolean; onOpenProjectSettings: () => void;
 }) {
   const { theme, toggle } = useTheme();
   const seg = (active: boolean) =>
@@ -50,6 +51,11 @@ export function Topbar({ view, onView, groupBy, onGroupBy, dueFilter, onDueFilte
             ))}
           </SelectContent>
         </Select>
+        {projectSelected && (
+          <Button variant="ghost" size="icon" onClick={onOpenProjectSettings} aria-label="Project settings">
+            <Settings className="size-4" />
+          </Button>
+        )}
         <Button variant="ghost" size="icon" onClick={onOpenPalette} aria-label="Search (Cmd+K)">
           <Search className="size-4" />
         </Button>
