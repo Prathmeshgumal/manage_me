@@ -7,6 +7,7 @@ import { ListView } from "@/components/list/ListView";
 import { QuickCreateDialog } from "@/components/task/QuickCreateDialog";
 import { TaskDetailPanel } from "@/components/task/TaskDetailPanel";
 import { CommandPalette } from "@/components/command/CommandPalette";
+import { HotCornerCalendar } from "@/components/HotCornerCalendar";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTasks } from "@/hooks/useTasks";
 import type { DueBucket } from "@/lib/dueDate";
@@ -114,6 +115,7 @@ export default function App() {
           toggleTheme: toggle,
         }}
       />
+      <HotCornerCalendar />
     </div>
   );
 }
