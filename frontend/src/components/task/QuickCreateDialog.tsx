@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,9 @@ import { statusMeta, priorityMeta, STATUS_ORDER, PRIORITY_ORDER } from "@/lib/pr
 import { useCreateTask } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
 
-export function QuickCreateDialog({ open, onOpenChange, defaultProjectId }: {
+export function QuickCreateDialog({ open, onOpenChange, defaultProjectId, defaultStatus, defaultPriority }: {
   open: boolean; onOpenChange: (o: boolean) => void; defaultProjectId: string | null;
+  defaultStatus?: Status; defaultPriority?: Priority;
 }) {
   const create = useCreateTask();
   const { data: projects = [] } = useProjects();
@@ -18,6 +19,15 @@ export function QuickCreateDialog({ open, onOpenChange, defaultProjectId }: {
   const [priority, setPriority] = useState<Priority>("NONE");
   const [projectId, setProjectId] = useState<string>(defaultProjectId ?? "none");
   const [dueDate, setDueDate] = useState("");
+
+  // Seed the form from the column / sidebar context each time the dialog opens.
+  useEffect(() => {
+    if (open) {
+      setStatus(defaultStatus ?? "BACKLOG");
+      setPriority(defaultPriority ?? "NONE");
+      setProjectId(defaultProjectId ?? "none");
+    }
+  }, [open, defaultStatus, defaultPriority, defaultProjectId]);
 
   function submit() {
     if (!title.trim()) return;

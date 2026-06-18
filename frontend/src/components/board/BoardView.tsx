@@ -5,8 +5,11 @@ import { STATUS_ORDER, PRIORITY_ORDER, statusMeta, priorityMeta } from "@/lib/pr
 import { Column } from "./Column";
 import type { GroupBy } from "@/components/layout/Topbar";
 
-export function BoardView({ groupBy, projectId, onOpenTask }: {
+export type CreateDefaults = { status?: Status; priority?: Priority };
+
+export function BoardView({ groupBy, projectId, onOpenTask, onCreateInColumn }: {
   groupBy: GroupBy; projectId: string | null; onOpenTask: (t: Task) => void;
+  onCreateInColumn: (defaults: CreateDefaults) => void;
 }) {
   const filter: TaskFilter | undefined = projectId ? { projectId } : undefined;
   const { data: tasks = [] } = useTasks(filter);
@@ -60,6 +63,11 @@ export function BoardView({ groupBy, projectId, onOpenTask }: {
               accent={info.accent}
               tasks={byGroup(key)}
               onOpenTask={onOpenTask}
+              onAddTask={() =>
+                onCreateInColumn(
+                  groupBy === "status" ? { status: key as Status } : { priority: key as Priority },
+                )
+              }
             />
           );
         })}
