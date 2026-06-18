@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { GithubRepo } from "@/types";
 import { api } from "@/lib/api";
 
 export const apiBase = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -19,6 +20,15 @@ export function useContributions(enabled: boolean) {
   return useQuery({
     queryKey: ["github", "contributions"],
     queryFn: () => api.get<ContributionCalendar>("/github/contributions"),
+    enabled,
+    retry: false,
+  });
+}
+
+export function useRepositories(enabled: boolean) {
+  return useQuery({
+    queryKey: ["github", "repositories"],
+    queryFn: () => api.get<GithubRepo[]>("/github/repositories"),
     enabled,
     retry: false,
   });

@@ -28,6 +28,9 @@ export interface Project {
   id: string;
   name: string;
   color: string;
+  githubRepoId: number | null;
+  githubRepoFullName: string | null;
+  githubInstallationId: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -70,6 +73,18 @@ export interface UpdateTaskInput {
 export interface CreateProjectInput {
   name: string;
   color?: string;
+  githubRepoId?: number | null;
+  githubRepoFullName?: string | null;
+  githubInstallationId?: number | null;
+}
+
+export type UpdateProjectInput = Partial<CreateProjectInput>;
+
+export interface GithubRepo {
+  id: number;
+  fullName: string;
+  private: boolean;
+  installationId: number;
 }
 
 export interface CreateLabelInput {

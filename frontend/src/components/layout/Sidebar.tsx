@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Plus, PanelLeftClose } from "lucide-react";
+import { Plus, PanelLeftClose, Pencil, Github } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useLabels } from "@/hooks/useLabels";
-import { CreateProjectDialog } from "@/components/project/CreateProjectDialog";
+import { ProjectDialog } from "@/components/project/ProjectDialog";
 import { LabelDialog } from "@/components/label/LabelDialog";
-import type { Label } from "@/types";
+import type { Label, Project } from "@/types";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggle, onOpenTasks, onOpenMyGithub, onOpenSettingsGithub }: {
@@ -18,7 +18,8 @@ export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggl
 }) {
   const { data: projects = [] } = useProjects();
   const { data: labels = [] } = useLabels();
-  const [createProjectOpen, setCreateProjectOpen] = useState(false);
+  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | undefined>(undefined);
   const [labelDialogOpen, setLabelDialogOpen] = useState(false);
   const [editingLabel, setEditingLabel] = useState<Label | undefined>(undefined);
   return (
@@ -53,7 +54,7 @@ export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggl
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono text-xs uppercase tracking-wide text-ink-muted">Projects</span>
           <button
-            onClick={() => setCreateProjectOpen(true)}
+            onClick={() => { setEditingProject(undefined); setProjectDialogOpen(true); }}
             aria-label="New project"
             className="text-ink-muted hover:text-ink rounded p-0.5 hover:bg-bg"
           >
@@ -63,16 +64,26 @@ export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggl
         <ul className="text-sm space-y-1">
           {projects.length === 0 && <li className="px-2 text-ink-muted text-xs">No projects yet</li>}
           {projects.map((p) => (
-            <li key={p.id}>
+            <li key={p.id} className="group flex items-center gap-1">
               <button
                 onClick={() => onSelectProject(p.id)}
                 className={cn(
-                  "w-full flex items-center gap-2 px-2 py-1 rounded-md hover:bg-bg",
+                  "flex-1 min-w-0 flex items-center gap-2 px-2 py-1 rounded-md hover:bg-bg",
                   selectedProjectId === p.id && "bg-bg font-medium",
                 )}
               >
-                <span className="size-2 rounded-full" style={{ background: p.color }} />
-                {p.name}
+                <span className="size-2 shrink-0 rounded-full" style={{ background: p.color }} />
+                <span className="truncate">{p.name}</span>
+                {p.githubRepoFullName && (
+                  <Github className="size-3 shrink-0 text-ink-muted" aria-label={`Linked to ${p.githubRepoFullName}`} />
+                )}
+              </button>
+              <button
+                onClick={() => { setEditingProject(p); setProjectDialogOpen(true); }}
+                aria-label={`Edit ${p.name}`}
+                className="shrink-0 text-ink-muted hover:text-ink rounded p-1 opacity-0 group-hover:opacity-100 hover:bg-bg"
+              >
+                <Pencil className="size-3.5" />
               </button>
             </li>
           ))}
@@ -106,7 +117,7 @@ export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggl
         </ul>
       </div>
 
-      <CreateProjectDialog open={createProjectOpen} onOpenChange={setCreateProjectOpen} />
+      <ProjectDialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen} project={editingProject} />
       <LabelDialog open={labelDialogOpen} onOpenChange={setLabelDialogOpen} label={editingLabel} />
       </div>
     </aside>
