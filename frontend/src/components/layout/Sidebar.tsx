@@ -7,14 +7,13 @@ import { LabelDialog } from "@/components/label/LabelDialog";
 import type { Label } from "@/types";
 import { cn } from "@/lib/utils";
 
-export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggle, onOpenTasks, onOpenMyGithub, onOpenSettingsGithub, onSelectProjectRow }: {
+export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggle, onOpenTasks, onOpenMyGithub, onSelectProjectRow }: {
   selectedProjectId: string | null;
   onSelectProject: (id: string | null) => void;
   collapsed: boolean;
   onToggle: () => void;
   onOpenTasks: () => void;
   onOpenMyGithub: () => void;
-  onOpenSettingsGithub: () => void;
   onSelectProjectRow: (id: string) => void;
 }) {
   const { data: projects = [] } = useProjects();
@@ -48,7 +47,6 @@ export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggl
           All tasks
         </button>
         <button onClick={onOpenMyGithub} className="w-full text-left px-2 py-1 rounded-md hover:bg-bg">My GitHub</button>
-        <button onClick={onOpenSettingsGithub} className="w-full text-left px-2 py-1 rounded-md hover:bg-bg">Connect GitHub</button>
       </nav>
       <div>
         <div className="flex items-center justify-between mb-2">

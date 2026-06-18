@@ -45,10 +45,11 @@ export function ContributionsChart({ calendar }: { calendar: ContributionCalenda
   });
 
   return (
-    <div className="inline-flex flex-col gap-2 text-ink-muted">
-      <div className="flex gap-2">
+    <div className="flex flex-col gap-2 text-ink-muted">
+      {/* Scrollable grid (falls back to horizontal scroll only on narrow screens) */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
         {/* Weekday labels */}
-        <div className="flex flex-col gap-[3px] pt-[18px]">
+        <div className="flex flex-col gap-[3px] pt-[18px] shrink-0">
           {WEEKDAYS.map((w, i) => (
             <span key={i} className="h-[11px] text-[10px] leading-[11px] pr-1">{w}</span>
           ))}
@@ -74,7 +75,7 @@ export function ContributionsChart({ calendar }: { calendar: ContributionCalenda
         </div>
       </div>
 
-      {/* Footer: total + legend */}
+      {/* Footer: total + legend (never scrolls) */}
       <div className="flex items-center justify-between text-[11px]">
         <span>{calendar.totalContributions.toLocaleString()} contributions in the last year</span>
         <span className="flex items-center gap-1">

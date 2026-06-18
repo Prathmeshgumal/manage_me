@@ -8,14 +8,13 @@ import { QuickCreateDialog } from "@/components/task/QuickCreateDialog";
 import { TaskDetailPanel } from "@/components/task/TaskDetailPanel";
 import { CommandPalette } from "@/components/command/CommandPalette";
 import { HotCornerCalendar } from "@/components/HotCornerCalendar";
-import { SettingsGithubPage } from "@/pages/SettingsGithubPage";
 import { MyGithubPage } from "@/pages/MyGithubPage";
 import { ProjectSettingsPage } from "@/pages/ProjectSettingsPage";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTasks } from "@/hooks/useTasks";
 import type { DueBucket } from "@/lib/dueDate";
 
-type Page = "tasks" | "my-github" | "settings-github" | "project-settings";
+type Page = "tasks" | "my-github" | "project-settings";
 
 export default function App() {
   const [page, setPage] = useState<Page>("tasks");
@@ -66,7 +65,7 @@ export default function App() {
   useEffect(() => {
     const p = new URLSearchParams(location.search);
     if (p.has("connected") || p.has("installed") || p.has("error")) {
-      setPage("settings-github");
+      setPage("my-github");
       history.replaceState(null, "", location.pathname);
     }
   }, []);
@@ -80,7 +79,6 @@ export default function App() {
         onToggle={toggleSidebar}
         onOpenTasks={() => setPage("tasks")}
         onOpenMyGithub={() => setPage("my-github")}
-        onOpenSettingsGithub={() => setPage("settings-github")}
         onSelectProjectRow={(id) => { setProjectId(id); setPage("tasks"); }}
       />
       <main className="flex-1 h-screen flex flex-col">
@@ -102,9 +100,7 @@ export default function App() {
         )}
         <section className="flex-1 overflow-auto p-4">
           {page === "my-github" ? (
-            <MyGithubPage onGoToSettings={() => setPage("settings-github")} />
-          ) : page === "settings-github" ? (
-            <SettingsGithubPage />
+            <MyGithubPage />
           ) : page === "project-settings" && projectId ? (
             <ProjectSettingsPage
               projectId={projectId}
