@@ -58,3 +58,24 @@ model Task {
   @@index([priority, sortOrder])
   @@index([projectId])
 }
+
+model GithubUserToken {
+  id           String   @id @default(cuid())
+  githubUserId Int      @unique
+  login        String
+  avatarUrl    String
+  accessToken  String
+  scope        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model GithubInstallation {
+  id                  String   @id @default(cuid())
+  installationId      Int      @unique
+  accountLogin        String
+  accountType         String
+  repositorySelection String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
