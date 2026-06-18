@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import type { Status, Priority } from "@/types";
 import { statusMeta, priorityMeta, STATUS_ORDER, PRIORITY_ORDER } from "@/lib/priority";
 import { useCreateTask } from "@/hooks/useTasks";
@@ -86,7 +87,7 @@ export function QuickCreateDialog({ open, onOpenChange, defaultProjectId, defaul
               {projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          <DatePicker value={dueDate || null} onChange={(v) => setDueDate(v ?? "")} />
         </div>
 
         <div className="flex flex-col gap-2 flex-1 min-h-0">

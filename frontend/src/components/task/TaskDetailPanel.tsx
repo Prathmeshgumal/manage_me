@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import type { Task, Status, Priority, UpdateTaskInput } from "@/types";
 import { statusMeta, priorityMeta, STATUS_ORDER, PRIORITY_ORDER } from "@/lib/priority";
 import { useUpdateTask } from "@/hooks/useTasks";
@@ -82,11 +83,7 @@ export function TaskDetailPanel({ task, open, onOpenChange }: {
               {projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Input
-            type="date"
-            value={dueValue}
-            onChange={(e) => save({ dueDate: e.target.value || null })}
-          />
+          <DatePicker value={dueValue || null} onChange={(v) => save({ dueDate: v })} />
         </div>
 
         <div className="flex flex-col gap-2">
