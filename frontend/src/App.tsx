@@ -14,6 +14,8 @@ import { LibraryRail } from "@/components/library/LibraryRail";
 import { LibraryPage } from "@/pages/LibraryPage";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTasks } from "@/hooks/useTasks";
+import { useAuth } from "@/hooks/useAuth";
+import { AuthPage } from "@/pages/AuthPage";
 import type { DueBucket } from "@/lib/dueDate";
 
 type Page = "tasks" | "my-github" | "project-settings" | "library";
@@ -34,6 +36,7 @@ export default function App() {
   const [openTask, setOpenTask] = useState<Task | null>(null);
 
   const { toggle } = useTheme();
+  const { status } = useAuth();
   const { data: allTasks = [] } = useTasks(projectId ? { projectId } : undefined);
 
   const openCreate = (defaults: CreateDefaults = {}) => {
@@ -72,6 +75,13 @@ export default function App() {
       history.replaceState(null, "", location.pathname);
     }
   }, []);
+
+  if (status === "loading") {
+    return <div className="min-h-screen flex items-center justify-center text-ink-muted">Loading…</div>;
+  }
+  if (status === "anonymous") {
+    return <AuthPage />;
+  }
 
   return (
     <div className="flex">
