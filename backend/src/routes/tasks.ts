@@ -28,6 +28,7 @@ tasksRouter.get("/", asyncHandler(async (req, res) => {
   const f = taskFilterSchema.parse(req.query);
   const rows = await prisma.task.findMany({
     where: {
+      workspaceId: req.workspaceId,
       status: f.status, priority: f.priority, projectId: f.projectId,
       ...(f.labelId ? { labels: { some: { id: f.labelId } } } : {}),
     },
@@ -40,20 +41,29 @@ tasksRouter.get("/", asyncHandler(async (req, res) => {
 tasksRouter.post("/", asyncHandler(async (req, res) => {
   const { labelIds, ...data } = createTaskSchema.parse(req.body);
   const row = await prisma.task.create({
-    data: { ...data, labels: labelIds ? { connect: labelIds.map((id) => ({ id })) } : undefined },
+    data: {
+      ...data,
+      workspaceId: req.workspaceId!,
+      labels: labelIds ? { connect: labelIds.map((id) => ({ id })) } : undefined,
+    },
     include: taskInclude,
   });
   res.status(201).json(serializeTask(row));
 }));
 
 tasksRouter.get("/:id", asyncHandler(async (req, res) => {
-  const row = await prisma.task.findUnique({ where: { id: req.params.id }, include: taskInclude });
+  const row = await prisma.task.findFirst({
+    where: { id: req.params.id, workspaceId: req.workspaceId },
+    include: taskInclude,
+  });
   if (!row) return res.status(404).json({ error: { message: "Not found" } });
   res.json(serializeTask(row));
 }));
 
 tasksRouter.patch("/:id", asyncHandler(async (req, res) => {
   const { labelIds, ...data } = updateTaskSchema.parse(req.body);
+  const existing = await prisma.task.findFirst({ where: { id: req.params.id, workspaceId: req.workspaceId } });
+  if (!existing) return res.status(404).json({ error: { message: "Not found" } });
   const row = await prisma.task.update({
     where: { id: req.params.id },
     data: { ...data, labels: labelIds ? { set: labelIds.map((id) => ({ id })) } : undefined },
@@ -63,6 +73,7 @@ tasksRouter.patch("/:id", asyncHandler(async (req, res) => {
 }));
 
 tasksRouter.delete("/:id", asyncHandler(async (req, res) => {
-  await prisma.task.delete({ where: { id: req.params.id } });
+  const result = await prisma.task.deleteMany({ where: { id: req.params.id, workspaceId: req.workspaceId } });
+  if (result.count === 0) return res.status(404).json({ error: { message: "Not found" } });
   res.status(204).end();
 }));
