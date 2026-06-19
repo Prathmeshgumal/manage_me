@@ -20,7 +20,7 @@ describe("listRepositories", () => {
       .mockResolvedValueOnce({ data: { repositories: [{ id: 10, full_name: "acme/website", private: true }] } } as never)
       .mockResolvedValueOnce({ data: { repositories: [{ id: 20, full_name: "you/app", private: false }] } } as never);
 
-    const repos = await listRepositories();
+    const repos = await listRepositories("ws1");
     expect(repos).toEqual([
       { id: 20, fullName: "you/app", private: false, installationId: 2 },
       { id: 10, fullName: "acme/website", private: true, installationId: 1 },
@@ -31,6 +31,6 @@ describe("listRepositories", () => {
 
   it("returns empty when there are no installations", async () => {
     vi.mocked(listInstallations).mockResolvedValueOnce([]);
-    expect(await listRepositories()).toEqual([]);
+    expect(await listRepositories("ws1")).toEqual([]);
   });
 });

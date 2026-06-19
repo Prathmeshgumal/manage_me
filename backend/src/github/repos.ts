@@ -4,9 +4,9 @@ import { listInstallations } from "./store.js";
 
 export type RepoRef = { id: number; fullName: string; private: boolean; installationId: number };
 
-/** Repositories the app can access, aggregated across all installations. */
-export async function listRepositories(): Promise<RepoRef[]> {
-  const installations = await listInstallations();
+/** Repositories the app can access for a workspace, aggregated across its installations. */
+export async function listRepositories(workspaceId: string): Promise<RepoRef[]> {
+  const installations = await listInstallations(workspaceId);
   const out: RepoRef[] = [];
   for (const inst of installations) {
     const token = await installationToken(inst.installationId);

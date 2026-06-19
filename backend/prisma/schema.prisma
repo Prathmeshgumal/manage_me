@@ -24,6 +24,59 @@ enum Priority {
   URGENT
 }
 
+enum Role {
+  OWNER
+  MEMBER
+  VIEWER
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  memberships  Membership[]
+  sessions     Session[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Workspace {
+  id                  String               @id @default(cuid())
+  name                String               @default("My Workspace")
+  memberships         Membership[]
+  projects            Project[]
+  labels              Label[]
+  tasks               Task[]
+  shelves             Shelf[]
+  githubUserTokens    GithubUserToken[]
+  githubInstallations GithubInstallation[]
+  createdAt           DateTime             @default(now())
+}
+
+model Membership {
+  id          String    @id @default(cuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  role        Role      @default(OWNER)
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
 model Project {
   id                   String   @id @default(cuid())
   name                 String
@@ -33,16 +86,24 @@ model Project {
   githubInstallationId Int?
   tasks                Task[]
   shelf                Shelf?
+  workspace            Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId          String
   createdAt            DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
 }
 
 model Label {
-  id        String   @id @default(cuid())
-  name      String
-  color     String   @default("#8A8A86")
-  tasks     Task[]
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  name        String
+  color       String    @default("#8A8A86")
+  tasks       Task[]
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  createdAt   DateTime  @default(now())
+
+  @@index([workspaceId])
 }
 
 model Task {
@@ -56,44 +117,59 @@ model Task {
   project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
   projectId   String?
   labels      Label[]
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([status, sortOrder])
   @@index([priority, sortOrder])
   @@index([projectId])
+  @@index([workspaceId])
 }
 
 model GithubUserToken {
-  id           String   @id @default(cuid())
-  githubUserId Int      @unique
+  id           String    @id @default(cuid())
+  githubUserId Int
   login        String
   avatarUrl    String
   accessToken  String
   scope        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId  String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([workspaceId, githubUserId])
 }
 
 model GithubInstallation {
-  id                  String   @id @default(cuid())
-  installationId      Int      @unique
+  id                  String    @id @default(cuid())
+  installationId      Int       @unique
   accountLogin        String
   accountType         String
   repositorySelection String
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId         String
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([workspaceId])
 }
 
 model Shelf {
-  id          String   @id @default(cuid())
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId   String?  @unique
-  name        String   @default("Library")
+  id          String    @id @default(cuid())
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String?   @unique
+  name        String    @default("Library")
   description String?
   books       Book[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId])
 }
 
 model Book {

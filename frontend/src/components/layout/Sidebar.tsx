@@ -4,6 +4,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { useLabels } from "@/hooks/useLabels";
 import { ProjectDialog } from "@/components/project/ProjectDialog";
 import { LabelDialog } from "@/components/label/LabelDialog";
+import { AccountMenu } from "@/components/account/AccountMenu";
 import type { Label } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -107,6 +108,8 @@ export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggl
           ))}
         </ul>
       </div>
+
+      <AccountMenu />
 
       <ProjectDialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen} />
       <LabelDialog open={labelDialogOpen} onOpenChange={setLabelDialogOpen} label={editingLabel} />
