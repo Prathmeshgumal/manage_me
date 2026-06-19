@@ -120,3 +120,5 @@ export interface UpdateBookInput { name?: string; description?: string | null; c
 export interface UpdateShelfInput { name?: string; description?: string | null; }
 export interface CreatePageInput { title: string; }
 export interface UpdatePageInput { title?: string; content?: string; }
+
+export type AuthUser = { id: string; email: string };
