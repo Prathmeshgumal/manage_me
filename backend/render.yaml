@@ -11,7 +11,7 @@ services:
     rootDir: backend
     buildCommand: >-
       corepack enable &&
-      pnpm install --frozen-lockfile &&
+      pnpm install --frozen-lockfile --prod=false &&
       pnpm prisma generate &&
       pnpm build &&
       pnpm prisma migrate deploy
