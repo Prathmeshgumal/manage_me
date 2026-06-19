@@ -10,29 +10,34 @@ const ENV = {
 };
 Object.assign(process.env, ENV);
 
-beforeEach(async () => { await prisma.githubUserToken.deleteMany(); await prisma.githubInstallation.deleteMany(); });
+let workspaceId: string;
+beforeEach(async () => {
+  await prisma.githubUserToken.deleteMany();
+  await prisma.githubInstallation.deleteMany();
+  await prisma.workspace.deleteMany();
+  workspaceId = (await prisma.workspace.create({ data: {} })).id;
+});
 afterAll(async () => { await prisma.$disconnect(); });
 
 describe("github store", () => {
   it("saves and reads a user token (encrypted at rest)", async () => {
-    await saveUserToken({ githubUserId: 7, login: "octo", avatarUrl: "http://a", accessToken: "ghu_secret", scope: "" });
+    await saveUserToken({ workspaceId, githubUserId: 7, login: "octo", avatarUrl: "http://a", accessToken: "ghu_secret", scope: "" });
     const row = await prisma.githubUserToken.findFirst();
     expect(row!.accessToken).not.toContain("ghu_secret");
-    const got = await getUserToken();
-    expect(got).toEqual({ login: "octo", avatarUrl: "http://a", accessToken: "ghu_secret" });
+    expect(await getUserToken(workspaceId)).toEqual({ login: "octo", avatarUrl: "http://a", accessToken: "ghu_secret" });
   });
 
-  it("upserts installations and lists them", async () => {
-    await saveInstallation({ installationId: 11, accountLogin: "acme", accountType: "Organization", repositorySelection: "all" });
-    await saveInstallation({ installationId: 11, accountLogin: "acme", accountType: "Organization", repositorySelection: "selected" });
-    const list = await listInstallations();
+  it("upserts installations and lists them per workspace", async () => {
+    await saveInstallation({ workspaceId, installationId: 11, accountLogin: "acme", accountType: "Organization", repositorySelection: "all" });
+    await saveInstallation({ workspaceId, installationId: 11, accountLogin: "acme", accountType: "Organization", repositorySelection: "selected" });
+    const list = await listInstallations(workspaceId);
     expect(list).toHaveLength(1);
     expect(list[0].repositorySelection).toBe("selected");
   });
 
   it("deletes the user token", async () => {
-    await saveUserToken({ githubUserId: 7, login: "o", avatarUrl: "a", accessToken: "t", scope: "" });
-    await deleteUserToken();
-    expect(await getUserToken()).toBeNull();
+    await saveUserToken({ workspaceId, githubUserId: 7, login: "o", avatarUrl: "a", accessToken: "t", scope: "" });
+    await deleteUserToken(workspaceId);
+    expect(await getUserToken(workspaceId)).toBeNull();
   });
 });

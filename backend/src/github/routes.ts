@@ -14,11 +14,11 @@ import {
 
 export const githubRouter = Router();
 
-githubRouter.get("/status", asyncHandler(async (_req, res) => {
-  const user = await getUserToken();
+githubRouter.get("/status", asyncHandler(async (req, res) => {
+  const user = await getUserToken(req.workspaceId!);
   res.json({
     user: user ? { login: user.login, avatarUrl: user.avatarUrl } : null,
-    installations: await listInstallations(),
+    installations: await listInstallations(req.workspaceId!),
   });
 }));
 
@@ -35,7 +35,7 @@ githubRouter.get("/callback", asyncHandler(async (req, res) => {
   if (!code) return res.redirect(`${back}?error=code`);
   const { accessToken, scope } = await exchangeCode(code);
   const user = await getAuthedUser(accessToken);
-  await saveUserToken({ githubUserId: user.id, login: user.login, avatarUrl: user.avatarUrl, accessToken, scope });
+  await saveUserToken({ workspaceId: req.workspaceId!, githubUserId: user.id, login: user.login, avatarUrl: user.avatarUrl, accessToken, scope });
   res.redirect(`${back}?connected=1`);
 }));
 
@@ -50,12 +50,12 @@ githubRouter.get("/setup", asyncHandler(async (req, res) => {
   const installationId = Number(req.query.installation_id);
   if (!installationId) return res.redirect(`${back}?error=install`);
   const meta = await getInstallation(installationId);
-  await saveInstallation(meta);
+  await saveInstallation({ workspaceId: req.workspaceId!, ...meta });
   res.redirect(`${back}?installed=1`);
 }));
 
-githubRouter.get("/repositories", asyncHandler(async (_req, res) => {
-  res.json(await listRepositories());
+githubRouter.get("/repositories", asyncHandler(async (req, res) => {
+  res.json(await listRepositories(req.workspaceId!));
 }));
 
 const contentsQuery = z.object({
@@ -69,13 +69,13 @@ githubRouter.get("/repos/contents", asyncHandler(async (req, res) => {
   res.json(await getRepoContents(installationId, owner, repo, path));
 }));
 
-githubRouter.get("/contributions", asyncHandler(async (_req, res) => {
-  const user = await getUserToken();
+githubRouter.get("/contributions", asyncHandler(async (req, res) => {
+  const user = await getUserToken(req.workspaceId!);
   if (!user) throw new AppError(409, "GitHub not connected");
   res.json(await fetchContributions(user.accessToken));
 }));
 
-githubRouter.post("/disconnect", asyncHandler(async (_req, res) => {
-  await deleteUserToken();
+githubRouter.post("/disconnect", asyncHandler(async (req, res) => {
+  await deleteUserToken(req.workspaceId!);
   res.status(204).end();
 }));
