@@ -1,6 +1,8 @@
 # Render Blueprint for the MySchedule backend.
 # Create a Web Service with Root Directory = backend, or use this Blueprint.
-# Set DATABASE_URL (your Neon pooled connection string) in the Render dashboard.
+# Set DATABASE_URL (Supabase transaction pooler :6543) and DIRECT_URL
+# (Supabase session pooler :5432, used by `prisma migrate deploy`) in the
+# Render dashboard.
 services:
   - type: web
     name: myschedule-api
@@ -17,6 +19,8 @@ services:
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
         sync: false
       - key: PORT
         value: 10000
