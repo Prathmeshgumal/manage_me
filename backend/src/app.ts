@@ -13,7 +13,10 @@ import { libraryRouter } from "./routes/library.js";
 
 export function createApp() {
   const app = express();
-  app.use(cors({ origin: process.env.FRONTEND_URL || true, credentials: true }));
+  // In production, lock CORS to the deployed frontend; in dev/test reflect the
+  // request origin so local frontends (and the test runner) work without config.
+  const corsOrigin = process.env.NODE_ENV === "production" ? (process.env.FRONTEND_URL ?? true) : true;
+  app.use(cors({ origin: corsOrigin, credentials: true }));
   app.use(express.json());
   app.use(cookieParser());
 
