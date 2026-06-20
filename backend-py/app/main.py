@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from .auth.routes import auth_router
 from .errors import install_error_handlers
+from .routers.tasks import tasks_router
 
 
 def create_app() -> FastAPI:
@@ -13,6 +14,7 @@ def create_app() -> FastAPI:
         return {"ok": True}
 
     app.include_router(auth_router)
+    app.include_router(tasks_router)
 
     return app
 
