@@ -84,7 +84,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar
         selectedProjectId={projectId}
         onSelectProject={setProjectId}
