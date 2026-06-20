@@ -1,0 +1,80 @@
+import sqlalchemy as sa
+from fastapi import APIRouter, Depends, Response
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..auth.deps import AuthContext, require_auth
+from ..db import get_db
+from ..errors import AppError
+from ..ids import new_id
+from ..models import Project
+from ..schemas import CreateProject, UpdateProject
+from ..timeutils import iso_z
+
+projects_router = APIRouter(prefix="/projects", dependencies=[Depends(require_auth)])
+
+
+def serialize_project(p: Project) -> dict:
+    return {
+        "id": p.id,
+        "name": p.name,
+        "color": p.color,
+        "githubRepoId": p.github_repo_id,
+        "githubRepoFullName": p.github_repo_full_name,
+        "githubInstallationId": p.github_installation_id,
+        "createdAt": iso_z(p.created_at),
+        "updatedAt": iso_z(p.updated_at),
+    }
+
+
+async def _load(db: AsyncSession, pid: str, wsid: str) -> Project | None:
+    return (
+        await db.execute(sa.select(Project).where(Project.id == pid, Project.workspace_id == wsid))
+    ).scalar_one_or_none()
+
+
+@projects_router.get("")
+async def list_projects(ctx: AuthContext = Depends(require_auth), db: AsyncSession = Depends(get_db)):
+    rows = (
+        await db.execute(
+            sa.select(Project).where(Project.workspace_id == ctx.workspace_id).order_by(Project.created_at.asc())
+        )
+    ).scalars().all()
+    return [serialize_project(p) for p in rows]
+
+
+@projects_router.post("", status_code=201)
+async def create_project(body: CreateProject, ctx: AuthContext = Depends(require_auth), db: AsyncSession = Depends(get_db)):
+    p = Project(
+        id=new_id(), name=body.name, color=body.color,
+        github_repo_id=body.github_repo_id, github_repo_full_name=body.github_repo_full_name,
+        github_installation_id=body.github_installation_id, workspace_id=ctx.workspace_id,
+    )
+    db.add(p)
+    await db.commit()
+    await db.refresh(p)
+    return serialize_project(p)
+
+
+@projects_router.patch("/{pid}")
+async def update_project(pid: str, body: UpdateProject, ctx: AuthContext = Depends(require_auth), db: AsyncSession = Depends(get_db)):
+    p = await _load(db, pid, ctx.workspace_id)
+    if p is None:
+        raise AppError(404, "Not found")
+    data = body.model_dump(exclude_unset=True)
+    if "name" in data: p.name = data["name"]
+    if "color" in data: p.color = data["color"]
+    if "github_repo_id" in data: p.github_repo_id = data["github_repo_id"]
+    if "github_repo_full_name" in data: p.github_repo_full_name = data["github_repo_full_name"]
+    if "github_installation_id" in data: p.github_installation_id = data["github_installation_id"]
+    await db.commit()
+    await db.refresh(p)
+    return serialize_project(p)
+
+
+@projects_router.delete("/{pid}", status_code=204)
+async def delete_project(pid: str, ctx: AuthContext = Depends(require_auth), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(sa.delete(Project).where(Project.id == pid, Project.workspace_id == ctx.workspace_id))
+    await db.commit()
+    if result.rowcount == 0:
+        raise AppError(404, "Not found")
+    return Response(status_code=204)
