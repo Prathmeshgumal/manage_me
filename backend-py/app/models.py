@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import Column, Float, ForeignKey, Table, func
+from sqlalchemy import false as sa_false
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -64,6 +65,7 @@ class Project(Base):
     workspace_id: Mapped[str] = mapped_column("workspaceId", ForeignKey("Workspace.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
+    deleted_at: Mapped[datetime | None] = mapped_column("deletedAt")
 
 
 class Label(Base):
@@ -88,15 +90,18 @@ class Task(Base):
     workspace_id: Mapped[str] = mapped_column("workspaceId", ForeignKey("Workspace.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
+    deleted_at: Mapped[datetime | None] = mapped_column("deletedAt")
+    deleted_with_project: Mapped[bool] = mapped_column("deletedWithProject", default=False, server_default=sa_false())
     labels: Mapped[list["Label"]] = relationship(secondary=label_task, lazy="selectin")
 
 
 class Shelf(Base):
     __tablename__ = "Shelf"
     id: Mapped[str] = mapped_column(primary_key=True, default=new_id)
-    project_id: Mapped[str | None] = mapped_column("projectId", ForeignKey("Project.id", ondelete="CASCADE"), unique=True)
+    project_id: Mapped[str | None] = mapped_column("projectId", ForeignKey("Project.id", ondelete="SET NULL"), unique=True)
     name: Mapped[str] = mapped_column(default="Library")
     description: Mapped[str | None]
+    is_general: Mapped[bool] = mapped_column("isGeneral", default=False, server_default=sa_false())
     workspace_id: Mapped[str] = mapped_column("workspaceId", ForeignKey("Workspace.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
@@ -112,6 +117,7 @@ class Book(Base):
     sort_order: Mapped[float] = mapped_column("sortOrder", Float, default=0)
     created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
+    deleted_at: Mapped[datetime | None] = mapped_column("deletedAt")
 
 
 class Page(Base):
@@ -123,6 +129,7 @@ class Page(Base):
     sort_order: Mapped[float] = mapped_column("sortOrder", Float, default=0)
     created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
+    deleted_at: Mapped[datetime | None] = mapped_column("deletedAt")
 
 
 class GithubUserToken(Base):
