@@ -60,3 +60,19 @@ async def auth_client(client):
     r = await client.post("/auth/signup", json={"email": email, "password": "password1"})
     assert r.status_code == 201
     return client, email
+
+
+@pytest.fixture
+def github_env(monkeypatch):
+    import base64 as _b64
+
+    env = {
+        "GITHUB_APP_ID": "12345", "GITHUB_APP_SLUG": "myschedule",
+        "GITHUB_APP_CLIENT_ID": "cid", "GITHUB_APP_CLIENT_SECRET": "csecret",
+        "GITHUB_APP_PRIVATE_KEY_BASE64": _b64.b64encode(b"unused-here").decode(),
+        "GITHUB_OAUTH_REDIRECT_URI": "http://localhost:4000/github/callback",
+        "GITHUB_TOKEN_ENC_KEY": _b64.b64encode(b"0" * 32).decode(),
+        "GITHUB_STATE_SECRET": "state-secret", "FRONTEND_URL": "http://localhost:5173",
+    }
+    for k, v in env.items():
+        monkeypatch.setenv(k, v)

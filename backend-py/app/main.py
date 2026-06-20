@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .auth.routes import auth_router
 from .config import get_settings
 from .errors import AppError, install_error_handlers
+from .github.routes import github_router
 from .routers.labels import labels_router
 from .routers.library import library_router
 from .routers.projects import projects_router
@@ -37,6 +38,7 @@ def create_app() -> FastAPI:
     app.include_router(projects_router)
     app.include_router(labels_router)
     app.include_router(library_router)
+    app.include_router(github_router)
 
     @app.api_route("/{path:path}", methods=["GET", "POST", "PATCH", "PUT", "DELETE"])
     async def _not_found(_request: Request, path: str):
