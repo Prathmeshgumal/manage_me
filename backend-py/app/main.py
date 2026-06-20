@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from .auth.routes import auth_router
 from .errors import install_error_handlers
+from .routers.labels import labels_router
 from .routers.projects import projects_router
 from .routers.tasks import tasks_router
 
@@ -17,6 +18,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(tasks_router)
     app.include_router(projects_router)
+    app.include_router(labels_router)
 
     return app
 
