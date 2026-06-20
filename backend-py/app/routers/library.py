@@ -10,21 +10,25 @@ from ..errors import AppError
 from ..ids import new_id
 from ..models import Book, Page, Project, Shelf
 from ..schemas import CreateBook, CreatePage, UpdateBook, UpdatePage, UpdateShelf
-from ..timeutils import iso_z
+from ..timeutils import iso_z, utcnow_naive
 
 library_router = APIRouter(dependencies=[Depends(require_auth)])
 
 
 async def _shelf_with_books(db: AsyncSession, shelf: Shelf) -> dict:
     books = (
-        await db.execute(sa.select(Book).where(Book.shelf_id == shelf.id).order_by(Book.sort_order.asc()))
+        await db.execute(
+            sa.select(Book)
+            .where(Book.shelf_id == shelf.id, Book.deleted_at.is_(None))
+            .order_by(Book.sort_order.asc())
+        )
     ).scalars().all()
     counts: dict[str, int] = {}
     if books:
         rows = (
             await db.execute(
                 sa.select(Page.book_id, sa.func.count())
-                .where(Page.book_id.in_([b.id for b in books]))
+                .where(Page.book_id.in_([b.id for b in books]), Page.deleted_at.is_(None))
                 .group_by(Page.book_id)
             )
         ).all()
@@ -53,7 +57,9 @@ async def _owned_shelf(db: AsyncSession, wsid: str, shelf_id: str) -> Shelf | No
 async def _owned_book(db: AsyncSession, wsid: str, book_id: str) -> Book | None:
     return (
         await db.execute(
-            sa.select(Book).join(Shelf, Book.shelf_id == Shelf.id).where(Book.id == book_id, Shelf.workspace_id == wsid)
+            sa.select(Book)
+            .join(Shelf, Book.shelf_id == Shelf.id)
+            .where(Book.id == book_id, Shelf.workspace_id == wsid, Book.deleted_at.is_(None))
         )
     ).scalar_one_or_none()
 
@@ -64,7 +70,12 @@ async def _owned_page(db: AsyncSession, wsid: str, page_id: str) -> Page | None:
             sa.select(Page)
             .join(Book, Page.book_id == Book.id)
             .join(Shelf, Book.shelf_id == Shelf.id)
-            .where(Page.id == page_id, Shelf.workspace_id == wsid)
+            .where(
+                Page.id == page_id,
+                Shelf.workspace_id == wsid,
+                Page.deleted_at.is_(None),
+                Book.deleted_at.is_(None),
+            )
         )
     ).scalar_one_or_none()
 
@@ -72,10 +83,12 @@ async def _owned_page(db: AsyncSession, wsid: str, page_id: str) -> Page | None:
 @library_router.get("/shelf")
 async def get_general_shelf(ctx: AuthContext = Depends(require_auth), db: AsyncSession = Depends(get_db)):
     shelf = (
-        await db.execute(sa.select(Shelf).where(Shelf.project_id.is_(None), Shelf.workspace_id == ctx.workspace_id))
+        await db.execute(
+            sa.select(Shelf).where(Shelf.is_general.is_(True), Shelf.workspace_id == ctx.workspace_id)
+        )
     ).scalar_one_or_none()
     if shelf is None:
-        shelf = Shelf(id=new_id(), project_id=None, name="General", workspace_id=ctx.workspace_id)
+        shelf = Shelf(id=new_id(), project_id=None, name="General", is_general=True, workspace_id=ctx.workspace_id)
         db.add(shelf)
         await db.commit()
         await db.refresh(shelf)
@@ -85,7 +98,13 @@ async def get_general_shelf(ctx: AuthContext = Depends(require_auth), db: AsyncS
 @library_router.get("/projects/{project_id}/shelf")
 async def get_project_shelf(project_id: str, ctx: AuthContext = Depends(require_auth), db: AsyncSession = Depends(get_db)):
     project = (
-        await db.execute(sa.select(Project).where(Project.id == project_id, Project.workspace_id == ctx.workspace_id))
+        await db.execute(
+            sa.select(Project).where(
+                Project.id == project_id,
+                Project.workspace_id == ctx.workspace_id,
+                Project.deleted_at.is_(None),
+            )
+        )
     ).scalar_one_or_none()
     if project is None:
         raise AppError(404, "Project not found")
@@ -97,6 +116,42 @@ async def get_project_shelf(project_id: str, ctx: AuthContext = Depends(require_
         shelf.name = project.name
     await db.commit()
     await db.refresh(shelf)
+    return await _shelf_with_books(db, shelf)
+
+
+@library_router.get("/shelves/orphaned")
+async def list_orphaned_shelves(ctx: AuthContext = Depends(require_auth), db: AsyncSession = Depends(get_db)):
+    """Shelves whose project was deleted (soft) or removed (permanent), shown as tiles in the General shelf."""
+    rows = (
+        await db.execute(
+            sa.select(Shelf)
+            .outerjoin(Project, Shelf.project_id == Project.id)
+            .where(
+                Shelf.workspace_id == ctx.workspace_id,
+                Shelf.is_general.is_(False),
+                sa.or_(Shelf.project_id.is_(None), Project.deleted_at.isnot(None)),
+            )
+            .order_by(Shelf.updated_at.desc())
+        )
+    ).scalars().all()
+    counts: dict[str, int] = {}
+    if rows:
+        crows = (
+            await db.execute(
+                sa.select(Book.shelf_id, sa.func.count())
+                .where(Book.shelf_id.in_([s.id for s in rows]), Book.deleted_at.is_(None))
+                .group_by(Book.shelf_id)
+            )
+        ).all()
+        counts = {sid: int(n) for sid, n in crows}
+    return [{"id": s.id, "name": s.name, "bookCount": counts.get(s.id, 0)} for s in rows]
+
+
+@library_router.get("/shelves/{shelf_id}")
+async def get_shelf(shelf_id: str, ctx: AuthContext = Depends(require_auth), db: AsyncSession = Depends(get_db)):
+    shelf = await _owned_shelf(db, ctx.workspace_id, shelf_id)
+    if shelf is None:
+        raise AppError(404, "Shelf not found")
     return await _shelf_with_books(db, shelf)
 
 
@@ -136,7 +191,11 @@ async def get_book(book_id: str, ctx: AuthContext = Depends(require_auth), db: A
     if b is None:
         raise AppError(404, "Book not found")
     pages = (
-        await db.execute(sa.select(Page).where(Page.book_id == book_id).order_by(Page.sort_order.asc()))
+        await db.execute(
+            sa.select(Page)
+            .where(Page.book_id == book_id, Page.deleted_at.is_(None))
+            .order_by(Page.sort_order.asc())
+        )
     ).scalars().all()
     return {
         "id": b.id, "name": b.name, "description": b.description, "color": b.color, "sortOrder": b.sort_order,
@@ -163,7 +222,7 @@ async def delete_book(book_id: str, ctx: AuthContext = Depends(require_auth), db
     b = await _owned_book(db, ctx.workspace_id, book_id)
     if b is None:
         raise AppError(404, "Book not found")
-    await db.delete(b)
+    b.deleted_at = utcnow_naive()
     await db.commit()
     return Response(status_code=204)
 
@@ -214,6 +273,6 @@ async def delete_page(page_id: str, ctx: AuthContext = Depends(require_auth), db
     p = await _owned_page(db, ctx.workspace_id, page_id)
     if p is None:
         raise AppError(404, "Page not found")
-    await db.delete(p)
+    p.deleted_at = utcnow_naive()
     await db.commit()
     return Response(status_code=204)

@@ -9,7 +9,7 @@ from ..errors import AppError
 from ..ids import new_id
 from ..models import Label, Task
 from ..schemas import CreateTask, TaskFilter, UpdateTask
-from ..timeutils import iso_z, to_naive_utc
+from ..timeutils import iso_z, to_naive_utc, utcnow_naive
 
 tasks_router = APIRouter(prefix="/tasks", dependencies=[Depends(require_auth)])
 
@@ -34,7 +34,7 @@ async def _load(db: AsyncSession, task_id: str, workspace_id: str) -> Task | Non
     return (
         await db.execute(
             sa.select(Task)
-            .where(Task.id == task_id, Task.workspace_id == workspace_id)
+            .where(Task.id == task_id, Task.workspace_id == workspace_id, Task.deleted_at.is_(None))
             .options(selectinload(Task.labels))
         )
     ).scalar_one_or_none()
@@ -61,7 +61,11 @@ async def list_tasks(
     ctx: AuthContext = Depends(require_auth),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = sa.select(Task).where(Task.workspace_id == ctx.workspace_id).options(selectinload(Task.labels))
+    stmt = (
+        sa.select(Task)
+        .where(Task.workspace_id == ctx.workspace_id, Task.deleted_at.is_(None))
+        .options(selectinload(Task.labels))
+    )
     if filt.status is not None:
         stmt = stmt.where(Task.status == filt.status.value)
     if filt.priority is not None:
@@ -134,10 +138,10 @@ async def update_task(
 
 @tasks_router.delete("/{task_id}", status_code=204)
 async def delete_task(task_id: str, ctx: AuthContext = Depends(require_auth), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(
-        sa.delete(Task).where(Task.id == task_id, Task.workspace_id == ctx.workspace_id)
-    )
-    await db.commit()
-    if result.rowcount == 0:
+    task = await _load(db, task_id, ctx.workspace_id)
+    if task is None:
         raise AppError(404, "Not found")
+    task.deleted_at = utcnow_naive()
+    task.deleted_with_project = False
+    await db.commit()
     return Response(status_code=204)

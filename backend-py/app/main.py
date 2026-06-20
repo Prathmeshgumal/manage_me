@@ -9,6 +9,7 @@ from .routers.labels import labels_router
 from .routers.library import library_router
 from .routers.projects import projects_router
 from .routers.tasks import tasks_router
+from .routers.trash import trash_router
 
 
 def create_app() -> FastAPI:
@@ -38,6 +39,7 @@ def create_app() -> FastAPI:
     app.include_router(projects_router)
     app.include_router(labels_router)
     app.include_router(library_router)
+    app.include_router(trash_router)
     app.include_router(github_router)
 
     @app.api_route("/{path:path}", methods=["GET", "POST", "PATCH", "PUT", "DELETE"])
