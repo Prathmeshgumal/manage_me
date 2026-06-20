@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,13 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePicker } from "@/components/ui/date-picker";
 import type { Task, Status, Priority, UpdateTaskInput } from "@/types";
 import { statusMeta, priorityMeta, STATUS_ORDER, PRIORITY_ORDER } from "@/lib/priority";
-import { useUpdateTask } from "@/hooks/useTasks";
+import { useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
 
 export function TaskDetailPanel({ task, open, onOpenChange }: {
   task: Task | null; open: boolean; onOpenChange: (o: boolean) => void;
 }) {
   const update = useUpdateTask();
+  const del = useDeleteTask();
   const { data: projects = [] } = useProjects();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -122,6 +123,21 @@ export function TaskDetailPanel({ task, open, onOpenChange }: {
               No description yet — click to add one.
             </button>
           )}
+        </div>
+
+        <div className="mt-auto border-t border-border pt-4 flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1 text-destructive hover:text-destructive"
+            disabled={del.isPending}
+            onClick={() => {
+              if (!confirm("Delete this task? You can restore it from Settings → Trash.")) return;
+              del.mutate(task.id, { onSuccess: () => onOpenChange(false) });
+            }}
+          >
+            <Trash2 className="size-4" /> Delete task
+          </Button>
         </div>
       </SheetContent>
     </Sheet>
