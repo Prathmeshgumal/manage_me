@@ -5,24 +5,24 @@ A fast, keyboard-driven task prioritization board — a personal take on Linear,
 Two independent projects in one repo, each deployed on its own:
 
 ```
-backend/    Express + Prisma API   → Render
-frontend/   React + Vite SPA        → Vercel
+backend-py/  FastAPI + SQLAlchemy + Alembic API  → Render
+frontend/    React + Vite SPA                     → Vercel
 ```
 
-They share no build tooling — each has its own `package.json`, install, and lockfile. The API contract types live in `frontend/src/types.ts` and `backend/src/schemas.ts` (kept in sync by hand).
+They share no build tooling — the backend is Python (managed with `uv`), the frontend is Node (pnpm). The API contract types live in `frontend/src/types.ts` and `backend-py/app/schemas.py` (kept in sync by hand).
 
 ## Stack
 
-- **Backend:** Express + TypeScript, Prisma, Zod → Render
+- **Backend:** FastAPI + Python, SQLAlchemy 2.0 (async) + asyncpg, Alembic, Pydantic v2 → Render
 - **Frontend:** React + Vite + TypeScript, Tailwind, shadcn/ui, TanStack Query, dnd-kit, cmdk → Vercel
-- **Database:** PostgreSQL (Neon)
-- **Tests:** Vitest
+- **Database:** PostgreSQL (Supabase in prod; local Postgres in dev)
+- **Tests:** pytest (backend)
 
 ## Prerequisites
 
-- Node 20+ (`.nvmrc` pins 20)
-- pnpm 9 (`corepack enable` then `corepack prepare pnpm@9.12.0 --activate`)
-- A PostgreSQL connection string (a free [Neon](https://neon.tech) database works great)
+- **Backend:** Python 3.12 + [`uv`](https://docs.astral.sh/uv/) (uv manages the Python toolchain)
+- **Frontend:** Node 20+ (`.nvmrc` pins 20) and pnpm 9 (`corepack enable`)
+- A PostgreSQL database (local Postgres for dev; a role/db like `myschedule` / `myschedule_dev`)
 
 ## Local development
 
@@ -31,13 +31,15 @@ Each project is set up and run independently — two terminals.
 ### Backend
 
 ```bash
-cd backend
-pnpm install
-cp .env.example .env          # set DATABASE_URL to your Postgres/Neon URL
-pnpm prisma:migrate           # create schema + generate the Prisma client
-pnpm prisma:seed              # (optional) load demo data
-pnpm dev                      # http://localhost:4000  (health at /health)
+cd backend-py
+uv sync
+cp .env.example .env          # set DATABASE_URL to your local Postgres
+uv run alembic upgrade head   # create schema on a fresh database
+uv run uvicorn app.main:app --reload --port 4000   # http://localhost:4000 (health at /health)
 ```
+
+> If you reuse a database created by an older Prisma-managed deployment, run
+> `uv run alembic stamp head` once instead of `upgrade` (the tables already exist).
 
 ### Frontend
 
@@ -48,24 +50,21 @@ cp .env.example .env          # defaults to VITE_API_URL=http://localhost:4000
 pnpm dev                      # http://localhost:5173
 ```
 
-> **Neon note:** the free tier auto-suspends an idle database, so the first request after a pause may be slow or transiently fail while the compute wakes — retry once.
-
 ## Useful commands
 
-Run inside `backend/` or `frontend/`:
-
 ```bash
-# backend
-pnpm test            # API tests — DESTRUCTIVE (see note)
-pnpm build           # bundle to dist/ (tsup)
-pnpm prisma:seed     # reset + load demo data
+# backend (backend-py)
+uv run pytest          # API tests (against a dedicated test DB — see note)
+uv run uvicorn app.main:app --reload --port 4000
 
 # frontend
-pnpm lint            # typecheck
-pnpm build           # production build to dist/
+pnpm lint              # typecheck
+pnpm build             # production build to dist/
 ```
 
-> **The backend tests are destructive.** They clear the tables (`deleteMany`) against whatever `DATABASE_URL` is set. Point `backend/.env` at a **separate test database** before running them, or re-seed afterwards with `pnpm prisma:seed`.
+> **Backend tests** run against a dedicated `myschedule_test` database, which is
+> auto-migrated and truncated between tests — they never touch your dev data.
+> Create it once with `createdb -h localhost -U myschedule myschedule_test`.
 
 ## Keyboard shortcuts
 
@@ -86,7 +85,7 @@ Connecting GitHub (to see your contribution chart and, later, repo/org context) 
 - **Repository permissions:** Metadata, Contents, Issues, Pull requests → **Read-only** (used by the upcoming project dashboard).
 - Generate a **private key** (downloads a `.pem`). Note the **App ID**, **Client ID**, a generated **Client secret**, and the app **slug** (the `…/apps/<slug>` part of its public page URL).
 
-**2. Fill `backend/.env`:**
+**2. Fill `backend-py/.env`:**
 
 ```bash
 # base64-encode the private key so it survives env newlines:
@@ -105,20 +104,21 @@ Set `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, `GITHUB_APP_CLIENT_ID`, `GITHUB_APP_CLIE
 
 ### Backend → Render
 
-New Web Service, **Root Directory = `backend`** (or use `backend/render.yaml`):
+New Web Service, **Root Directory = `backend-py`**:
 
-- **Build:** `corepack enable && pnpm install --frozen-lockfile && pnpm prisma generate && pnpm build && pnpm prisma migrate deploy`
-- **Start:** `pnpm start`
-- **Env:** `DATABASE_URL` (your Neon pooled connection string)
+- **Build:** `uv sync && uv run alembic upgrade head`
+- **Start:** `gunicorn app.main:app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT`
+- **Env:** `APP_ENV=production`, `DATABASE_URL` (Supabase **session** connection, port 5432), `FRONTEND_URL`, and the `GITHUB_*` vars if using GitHub.
 - **Health check:** `/health`
+
+> For a database that already has the schema (e.g. migrated from the previous
+> Prisma backend), run `alembic stamp head` against it once before the first deploy.
 
 ### Frontend → Vercel
 
 - **Root Directory:** `frontend`
 - **Framework:** Vite (auto-detected; `frontend/vercel.json` included)
-- **Env:** `VITE_API_URL` = your deployed Render API URL (e.g. `https://myschedule-api.onrender.com`)
-
-The API enables permissive CORS, so the Vercel frontend can call the Render API directly.
+- **Env:** `VITE_API_URL` = `/api` (the SPA calls the backend through a same-origin Vercel rewrite → first-party session cookie).
 
 ## Roadmap
 
