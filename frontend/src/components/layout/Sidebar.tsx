@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { Plus, PanelLeftClose, Github, Settings } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
-import { useLabels } from "@/hooks/useLabels";
 import { ProjectDialog } from "@/components/project/ProjectDialog";
-import { LabelDialog } from "@/components/label/LabelDialog";
-import type { Label } from "@/types";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({ page, selectedProjectId, onSelectProject, collapsed, onToggle, onOpenTasks, onOpenSettings, onSelectProjectRow }: {
@@ -18,10 +15,7 @@ export function Sidebar({ page, selectedProjectId, onSelectProject, collapsed, o
   onSelectProjectRow: (id: string) => void;
 }) {
   const { data: projects = [] } = useProjects();
-  const { data: labels = [] } = useLabels();
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
-  const [labelDialogOpen, setLabelDialogOpen] = useState(false);
-  const [editingLabel, setEditingLabel] = useState<Label | undefined>(undefined);
   return (
     <aside
       className={cn(
@@ -83,34 +77,6 @@ export function Sidebar({ page, selectedProjectId, onSelectProject, collapsed, o
           ))}
         </ul>
       </div>
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-xs uppercase tracking-wide text-ink-muted">Labels</span>
-          <button
-            onClick={() => { setEditingLabel(undefined); setLabelDialogOpen(true); }}
-            aria-label="New label"
-            className="text-ink-muted hover:text-ink rounded p-0.5 hover:bg-bg"
-          >
-            <Plus className="size-3.5" />
-          </button>
-        </div>
-        <ul className="text-sm space-y-1">
-          {labels.length === 0 && <li className="px-2 text-ink-muted text-xs">No labels yet</li>}
-          {labels.map((l) => (
-            <li key={l.id}>
-              <button
-                onClick={() => { setEditingLabel(l); setLabelDialogOpen(true); }}
-                className="w-full flex items-center gap-2 px-2 py-1 rounded-md hover:bg-bg text-left"
-                title="Edit label"
-              >
-                <span className="size-2 rounded-sm" style={{ background: l.color }} />
-                {l.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
       <button
         onClick={onOpenSettings}
         className={cn(
@@ -122,7 +88,6 @@ export function Sidebar({ page, selectedProjectId, onSelectProject, collapsed, o
       </button>
 
       <ProjectDialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen} />
-      <LabelDialog open={labelDialogOpen} onOpenChange={setLabelDialogOpen} label={editingLabel} />
       </div>
     </aside>
   );

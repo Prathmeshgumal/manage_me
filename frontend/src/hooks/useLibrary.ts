@@ -1,11 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Shelf, Book, BookSummary, Page, PageSummary, CreateBookInput, UpdateBookInput, UpdateShelfInput, CreatePageInput, UpdatePageInput } from "@/types";
+import type { Shelf, Book, BookSummary, Page, PageSummary, CreateBookInput, UpdateBookInput, UpdateShelfInput, CreatePageInput, UpdatePageInput, OrphanShelf } from "@/types";
 import { api } from "@/lib/api";
 
 export function useShelf(projectId: string | null) {
   return useQuery({
     queryKey: ["library", "shelf", projectId],
     queryFn: () => api.get<Shelf>(projectId ? `/projects/${projectId}/shelf` : `/shelf`),
+  });
+}
+
+export function useOrphanShelves(enabled = true) {
+  return useQuery({
+    queryKey: ["library", "orphaned"],
+    queryFn: () => api.get<OrphanShelf[]>("/shelves/orphaned"),
+    enabled,
+  });
+}
+
+export function useShelfById(shelfId: string | null) {
+  return useQuery({
+    queryKey: ["library", "shelf-by-id", shelfId],
+    queryFn: () => api.get<Shelf>(`/shelves/${shelfId}`),
+    enabled: !!shelfId,
   });
 }
 
@@ -80,11 +96,12 @@ export function useUpdateBook(projectId: string | null) {
   });
 }
 
-export function useDeleteBook(projectId: string | null) {
+export function useDeleteBook(_projectId: string | null) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.del(`/books/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["library", "shelf", projectId] }),
+    // Broad invalidation so project shelf, General shelf and orphan-shelf views all refresh.
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["library"] }),
   });
 }
 
@@ -149,6 +166,9 @@ export function useDeletePage(bookId: string | null) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.del(`/pages/${id}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["library", "book", bookId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["library", "book", bookId] });
+      qc.invalidateQueries({ queryKey: ["library", "shelf-by-id"] });
+    },
   });
 }

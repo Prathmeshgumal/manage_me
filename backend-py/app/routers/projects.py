@@ -6,9 +6,9 @@ from ..auth.deps import AuthContext, require_auth
 from ..db import get_db
 from ..errors import AppError
 from ..ids import new_id
-from ..models import Project
+from ..models import Project, Task
 from ..schemas import CreateProject, UpdateProject
-from ..timeutils import iso_z
+from ..timeutils import iso_z, utcnow_naive
 
 projects_router = APIRouter(prefix="/projects", dependencies=[Depends(require_auth)])
 
@@ -28,7 +28,11 @@ def serialize_project(p: Project) -> dict:
 
 async def _load(db: AsyncSession, pid: str, wsid: str) -> Project | None:
     return (
-        await db.execute(sa.select(Project).where(Project.id == pid, Project.workspace_id == wsid))
+        await db.execute(
+            sa.select(Project).where(
+                Project.id == pid, Project.workspace_id == wsid, Project.deleted_at.is_(None)
+            )
+        )
     ).scalar_one_or_none()
 
 
@@ -36,7 +40,9 @@ async def _load(db: AsyncSession, pid: str, wsid: str) -> Project | None:
 async def list_projects(ctx: AuthContext = Depends(require_auth), db: AsyncSession = Depends(get_db)):
     rows = (
         await db.execute(
-            sa.select(Project).where(Project.workspace_id == ctx.workspace_id).order_by(Project.created_at.asc())
+            sa.select(Project)
+            .where(Project.workspace_id == ctx.workspace_id, Project.deleted_at.is_(None))
+            .order_by(Project.created_at.asc())
         )
     ).scalars().all()
     return [serialize_project(p) for p in rows]
@@ -73,8 +79,17 @@ async def update_project(pid: str, body: UpdateProject, ctx: AuthContext = Depen
 
 @projects_router.delete("/{pid}", status_code=204)
 async def delete_project(pid: str, ctx: AuthContext = Depends(require_auth), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(sa.delete(Project).where(Project.id == pid, Project.workspace_id == ctx.workspace_id))
-    await db.commit()
-    if result.rowcount == 0:
+    p = await _load(db, pid, ctx.workspace_id)
+    if p is None:
         raise AppError(404, "Not found")
+    now = utcnow_naive()
+    # Soft-delete the project and tag its still-active tasks so a restore brings back
+    # exactly those. The shelf/books/pages are intentionally left untouched.
+    await db.execute(
+        sa.update(Task)
+        .where(Task.project_id == pid, Task.workspace_id == ctx.workspace_id, Task.deleted_at.is_(None))
+        .values(deleted_at=now, deleted_with_project=True)
+    )
+    p.deleted_at = now
+    await db.commit()
     return Response(status_code=204)

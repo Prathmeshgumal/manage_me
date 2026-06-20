@@ -1,6 +1,11 @@
 from datetime import datetime, timezone
 
 
+def utcnow_naive() -> datetime:
+    """Current UTC time as a naive datetime (for `timestamp without time zone` columns)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 def to_naive_utc(dt: datetime | None) -> datetime | None:
     """Normalize an incoming datetime to naive UTC for `timestamp without time zone` columns."""
     if dt is None:

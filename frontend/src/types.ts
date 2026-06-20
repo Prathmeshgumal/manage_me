@@ -122,3 +122,12 @@ export interface CreatePageInput { title: string; }
 export interface UpdatePageInput { title?: string; content?: string; }
 
 export type AuthUser = { id: string; email: string };
+
+export type TrashKind = "project" | "task" | "book" | "page";
+export interface TrashBundle {
+  projects: { id: string; name: string; deletedAt: string }[];
+  tasks: { id: string; title: string; deletedAt: string }[];
+  books: { id: string; name: string; deletedAt: string }[];
+  pages: { id: string; title: string; deletedAt: string }[];
+}
+export interface OrphanShelf { id: string; name: string; bookCount: number; }

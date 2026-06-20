@@ -1,19 +1,26 @@
 import { useState } from "react";
-import { ArrowLeft, ChevronRight, ChevronDown, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, ChevronDown, Trash2, Library } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useShelf, useBook, useDeleteBook, useCreateBook } from "@/hooks/useLibrary";
+import { useShelf, useBook, useDeleteBook, useCreateBook, useOrphanShelves, useShelfById } from "@/hooks/useLibrary";
 import { BookList } from "@/components/library/BookList";
 import { BookShelf } from "@/components/library/BookShelf";
 import { randomBookColor } from "@/lib/bookColors";
 import { PageList } from "@/components/library/PageList";
 import { PageEditor } from "@/components/library/PageEditor";
 
-type Nav = { level: "shelf" | "book" | "page"; bookId?: string; pageId?: string };
+type Nav = {
+  level: "shelf" | "orphan" | "book" | "page";
+  bookId?: string;
+  pageId?: string;
+  orphanShelfId?: string;
+};
 
 export function LibraryPage({ projectId, initialBookId, onBack }: {
   projectId: string | null; initialBookId?: string | null; onBack: () => void;
 }) {
+  const isGeneral = projectId === null;
   const { data: shelf } = useShelf(projectId);
+  const { data: orphans = [] } = useOrphanShelves(isGeneral);
   const deleteBook = useDeleteBook(projectId);
   const createBook = useCreateBook(projectId);
   const [nav, setNav] = useState<Nav>(
@@ -21,8 +28,12 @@ export function LibraryPage({ projectId, initialBookId, onBack }: {
   );
   const [showList, setShowList] = useState(false);
   const { data: book } = useBook(nav.bookId ?? null);
+  const { data: orphanShelf } = useShelfById(nav.orphanShelfId ?? null);
 
   if (!shelf) return <div className="p-6 text-sm text-ink-muted">Loading library…</div>;
+
+  const backFromBook = (): Nav =>
+    nav.orphanShelfId ? { level: "orphan", orphanShelfId: nav.orphanShelfId } : { level: "shelf" };
 
   return (
     <div className="max-w-6xl p-6 flex flex-col gap-6">
@@ -33,10 +44,16 @@ export function LibraryPage({ projectId, initialBookId, onBack }: {
       {/* Breadcrumb */}
       <div className="flex items-center gap-1 text-sm flex-wrap">
         <button className="font-display font-semibold hover:underline" onClick={() => setNav({ level: "shelf" })}>{shelf.name}</button>
-        {book && nav.level !== "shelf" && (
+        {nav.orphanShelfId && orphanShelf && (
           <>
             <ChevronRight className="size-4 text-ink-muted" />
-            <button className="hover:underline" onClick={() => setNav({ level: "book", bookId: book.id })}>{book.name}</button>
+            <button className="hover:underline" onClick={() => setNav({ level: "orphan", orphanShelfId: nav.orphanShelfId })}>{orphanShelf.name}</button>
+          </>
+        )}
+        {book && (nav.level === "book" || nav.level === "page") && (
+          <>
+            <ChevronRight className="size-4 text-ink-muted" />
+            <button className="hover:underline" onClick={() => setNav({ level: "book", bookId: book.id, orphanShelfId: nav.orphanShelfId })}>{book.name}</button>
           </>
         )}
         {nav.level === "page" && book && (
@@ -48,52 +65,94 @@ export function LibraryPage({ projectId, initialBookId, onBack }: {
       </div>
 
       {nav.level === "shelf" && (
-        <div className="flex flex-col lg:flex-row gap-6 items-stretch h-[74vh]">
-          <div className="flex-1 min-w-0 w-full flex flex-col gap-1.5">
-            <div className="flex justify-end">
+        <>
+          <div className="flex flex-col lg:flex-row gap-6 items-stretch h-[74vh]">
+            <div className="flex-1 min-w-0 w-full flex flex-col gap-1.5">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowList((s) => !s)}
+                  aria-label={showList ? "Hide book list" : "Show book list"}
+                  title={showList ? "Hide book list" : "Show book list"}
+                  className="rounded-md border border-border bg-surface text-ink-muted hover:text-ink p-1.5"
+                >
+                  <ChevronDown className={`size-4 transition-transform ${showList ? "rotate-180" : ""}`} />
+                </button>
+              </div>
+              <div className="flex-1 min-h-0">
+                <BookShelf
+                  books={shelf.books}
+                  onOpenBook={(id) => setNav({ level: "book", bookId: id })}
+                  onAddBook={(name) => createBook.mutate({ shelfId: shelf.id, input: { name, color: randomBookColor() } })}
+                />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0 w-full overflow-auto">
+              {showList && (
+                <BookList projectId={projectId} shelfId={shelf.id} books={shelf.books}
+                  variant="list"
+                  onOpenBook={(id) => setNav({ level: "book", bookId: id })} />
+              )}
+            </div>
+          </div>
+
+          {isGeneral && orphans.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className="font-mono text-xs uppercase tracking-wide text-ink-muted">Archived project shelves</span>
+              <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-3">
+                {orphans.map((o) => (
+                  <button
+                    key={o.id}
+                    onClick={() => setNav({ level: "orphan", orphanShelfId: o.id })}
+                    title={o.name}
+                    className="aspect-square rounded-lg border border-border bg-surface hover:bg-bg flex flex-col items-center justify-center gap-1 p-2 text-center"
+                  >
+                    <Library className="size-6 text-ink-muted" />
+                    <span className="text-xs font-medium truncate w-full">{o.name}</span>
+                    <span className="font-mono text-[10px] text-ink-muted">{o.bookCount} book{o.bookCount === 1 ? "" : "s"}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {nav.level === "orphan" && orphanShelf && (
+        orphanShelf.books.length === 0 ? (
+          <p className="text-sm text-ink-muted">No books in this shelf.</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {orphanShelf.books.map((b) => (
               <button
-                onClick={() => setShowList((s) => !s)}
-                aria-label={showList ? "Hide book list" : "Show book list"}
-                title={showList ? "Hide book list" : "Show book list"}
-                className="rounded-md border border-border bg-surface text-ink-muted hover:text-ink p-1.5"
+                key={b.id}
+                onClick={() => setNav({ level: "book", bookId: b.id, orphanShelfId: nav.orphanShelfId })}
+                className="rounded-lg border border-border bg-surface hover:bg-bg p-4 text-left flex flex-col gap-1.5"
               >
-                <ChevronDown className={`size-4 transition-transform ${showList ? "rotate-180" : ""}`} />
+                <span className="size-3 rounded-sm" style={{ background: b.color }} />
+                <span className="text-sm font-medium truncate">{b.name}</span>
+                <span className="font-mono text-[11px] text-ink-muted">{b.pageCount} page{b.pageCount === 1 ? "" : "s"}</span>
               </button>
-            </div>
-            <div className="flex-1 min-h-0">
-              <BookShelf
-                books={shelf.books}
-                onOpenBook={(id) => setNav({ level: "book", bookId: id })}
-                onAddBook={(name) => createBook.mutate({ shelfId: shelf.id, input: { name, color: randomBookColor() } })}
-              />
-            </div>
+            ))}
           </div>
-          <div className="flex-1 min-w-0 w-full overflow-auto">
-            {showList && (
-              <BookList projectId={projectId} shelfId={shelf.id} books={shelf.books}
-                variant="list"
-                onOpenBook={(id) => setNav({ level: "book", bookId: id })} />
-            )}
-          </div>
-        </div>
+        )
       )}
 
       {nav.level === "book" && book && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <span className="font-display text-lg font-bold">{book.name}</span>
-            <Button variant="ghost" size="sm" className="gap-1" onClick={() => deleteBook.mutate(book.id, { onSuccess: () => setNav({ level: "shelf" }) })}>
+            <Button variant="ghost" size="sm" className="gap-1" onClick={() => deleteBook.mutate(book.id, { onSuccess: () => setNav(backFromBook()) })}>
               <Trash2 className="size-4" /> Delete book
             </Button>
           </div>
           <PageList bookId={book.id} pages={book.pages}
-            onOpenPage={(pid) => setNav({ level: "page", bookId: book.id, pageId: pid })} />
+            onOpenPage={(pid) => setNav({ level: "page", bookId: book.id, pageId: pid, orphanShelfId: nav.orphanShelfId })} />
         </div>
       )}
 
       {nav.level === "page" && nav.pageId && nav.bookId && (
         <PageEditor pageId={nav.pageId} bookId={nav.bookId}
-          onDeleted={() => setNav({ level: "book", bookId: nav.bookId })} />
+          onDeleted={() => setNav({ level: "book", bookId: nav.bookId, orphanShelfId: nav.orphanShelfId })} />
       )}
     </div>
   );
