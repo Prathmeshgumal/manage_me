@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from .auth.routes import auth_router
 from .errors import install_error_handlers
 
 
@@ -10,6 +11,8 @@ def create_app() -> FastAPI:
     @app.get("/health")
     async def health() -> dict[str, bool]:
         return {"ok": True}
+
+    app.include_router(auth_router)
 
     return app
 
