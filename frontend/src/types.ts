@@ -1,5 +1,5 @@
 // API contract types for the MySchedule backend.
-// Kept in sync with backend/src/schemas.ts (this app is deployed independently).
+// Kept in sync with backend-py/app/schemas.py (this app is deployed independently).
 
 export type Status = "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE" | "CANCELED";
 export type Priority = "NONE" | "LOW" | "MEDIUM" | "HIGH" | "URGENT";
