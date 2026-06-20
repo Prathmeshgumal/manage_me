@@ -1,0 +1,40 @@
+name: Keep Render backend awake
+
+# Render's free tier spins the service down after ~15 min of inactivity, which
+# makes the next request slow (cold start). This pings /health on a schedule so
+# the instance stays warm. Override the target by setting a repo variable
+# RENDER_HEALTH_URL (Settings -> Secrets and variables -> Actions -> Variables).
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # every 10 minutes (GitHub may delay runs under load)
+  workflow_dispatch: {} # allow manual runs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keep-alive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        env:
+          URL: ${{ vars.RENDER_HEALTH_URL || 'https://manageme-api-5vg1.onrender.com/health' }}
+        run: |
+          echo "Pinging $URL"
+          for attempt in 1 2 3 4 5; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 60 "$URL" || echo "000")
+            echo "Attempt $attempt -> HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "Backend is awake."
+              exit 0
+            fi
+            # A cold start can take ~30-60s on the free tier; wait and retry.
+            sleep 30
+          done
+          echo "Health check failed after 5 attempts."
+          exit 1
