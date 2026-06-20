@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -54,8 +54,8 @@
     --gh-2: #40c463;
     --gh-3: #30a14e;
     --gh-4: #216e39;
-    --font-display: "Space Grotesk", sans-serif;
-    --font-body: "IBM Plex Sans", sans-serif;
+    --font-display: "Schibsted Grotesk", sans-serif;
+    --font-body: "Hanken Grotesk", sans-serif;
     --font-mono: "IBM Plex Mono", monospace;
   }
 
