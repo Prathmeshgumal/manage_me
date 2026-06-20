@@ -123,3 +123,28 @@ class Page(Base):
     sort_order: Mapped[float] = mapped_column("sortOrder", Float, default=0)
     created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
+
+
+class GithubUserToken(Base):
+    __tablename__ = "GithubUserToken"
+    id: Mapped[str] = mapped_column(primary_key=True, default=new_id)
+    github_user_id: Mapped[int] = mapped_column("githubUserId")
+    login: Mapped[str]
+    avatar_url: Mapped[str] = mapped_column("avatarUrl")
+    access_token: Mapped[str] = mapped_column("accessToken")
+    scope: Mapped[str | None]
+    workspace_id: Mapped[str] = mapped_column("workspaceId", ForeignKey("Workspace.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
+
+
+class GithubInstallation(Base):
+    __tablename__ = "GithubInstallation"
+    id: Mapped[str] = mapped_column(primary_key=True, default=new_id)
+    installation_id: Mapped[int] = mapped_column("installationId", unique=True)
+    account_login: Mapped[str] = mapped_column("accountLogin")
+    account_type: Mapped[str] = mapped_column("accountType")
+    repository_selection: Mapped[str] = mapped_column("repositorySelection")
+    workspace_id: Mapped[str] = mapped_column("workspaceId", ForeignKey("Workspace.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
