@@ -1,20 +1,20 @@
 import { useState } from "react";
-import { Plus, PanelLeftClose, Github } from "lucide-react";
+import { Plus, PanelLeftClose, Github, Settings } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useLabels } from "@/hooks/useLabels";
 import { ProjectDialog } from "@/components/project/ProjectDialog";
 import { LabelDialog } from "@/components/label/LabelDialog";
-import { AccountMenu } from "@/components/account/AccountMenu";
 import type { Label } from "@/types";
 import { cn } from "@/lib/utils";
 
-export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggle, onOpenTasks, onOpenMyGithub, onSelectProjectRow }: {
+export function Sidebar({ page, selectedProjectId, onSelectProject, collapsed, onToggle, onOpenTasks, onOpenSettings, onSelectProjectRow }: {
+  page: "tasks" | "settings" | "project-settings" | "library";
   selectedProjectId: string | null;
   onSelectProject: (id: string | null) => void;
   collapsed: boolean;
   onToggle: () => void;
   onOpenTasks: () => void;
-  onOpenMyGithub: () => void;
+  onOpenSettings: () => void;
   onSelectProjectRow: (id: string) => void;
 }) {
   const { data: projects = [] } = useProjects();
@@ -43,11 +43,13 @@ export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggl
       <nav className="text-sm flex flex-col gap-1">
         <button
           onClick={() => { onSelectProject(null); onOpenTasks(); }}
-          className={cn("w-full text-left px-2 py-1 rounded-md hover:bg-bg", !selectedProjectId && "bg-bg font-medium")}
+          className={cn(
+            "w-full text-left px-2 py-1 rounded-md hover:bg-bg",
+            page === "tasks" && !selectedProjectId && "bg-bg font-medium",
+          )}
         >
           All tasks
         </button>
-        <button onClick={onOpenMyGithub} className="w-full text-left px-2 py-1 rounded-md hover:bg-bg">My GitHub</button>
       </nav>
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -68,7 +70,7 @@ export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggl
                 onClick={() => onSelectProjectRow(p.id)}
                 className={cn(
                   "w-full min-w-0 flex items-center gap-2 px-2 py-1 rounded-md hover:bg-bg",
-                  selectedProjectId === p.id && "bg-bg font-medium",
+                  selectedProjectId === p.id && (page === "tasks" || page === "project-settings") && "bg-bg font-medium",
                 )}
               >
                 <span className="size-2 shrink-0 rounded-full" style={{ background: p.color }} />
@@ -109,7 +111,15 @@ export function Sidebar({ selectedProjectId, onSelectProject, collapsed, onToggl
         </ul>
       </div>
 
-      <AccountMenu />
+      <button
+        onClick={onOpenSettings}
+        className={cn(
+          "mt-auto w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm hover:bg-bg",
+          page === "settings" ? "bg-bg font-medium" : "text-ink-muted hover:text-ink",
+        )}
+      >
+        <Settings className="size-4 shrink-0" /> Settings
+      </button>
 
       <ProjectDialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen} />
       <LabelDialog open={labelDialogOpen} onOpenChange={setLabelDialogOpen} label={editingLabel} />

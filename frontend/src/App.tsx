@@ -8,7 +8,7 @@ import { QuickCreateDialog } from "@/components/task/QuickCreateDialog";
 import { TaskDetailPanel } from "@/components/task/TaskDetailPanel";
 import { CommandPalette } from "@/components/command/CommandPalette";
 import { HotCornerCalendar } from "@/components/HotCornerCalendar";
-import { MyGithubPage } from "@/pages/MyGithubPage";
+import { SettingsPage } from "@/pages/SettingsPage";
 import { ProjectSettingsPage } from "@/pages/ProjectSettingsPage";
 import { LibraryRail } from "@/components/library/LibraryRail";
 import { LibraryPage } from "@/pages/LibraryPage";
@@ -18,7 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AuthPage } from "@/pages/AuthPage";
 import type { DueBucket } from "@/lib/dueDate";
 
-type Page = "tasks" | "my-github" | "project-settings" | "library";
+type Page = "tasks" | "settings" | "project-settings" | "library";
 
 export default function App() {
   const [page, setPage] = useState<Page>("tasks");
@@ -71,7 +71,7 @@ export default function App() {
   useEffect(() => {
     const p = new URLSearchParams(location.search);
     if (p.has("connected") || p.has("installed") || p.has("error")) {
-      setPage("my-github");
+      setPage("settings");
       history.replaceState(null, "", location.pathname);
     }
   }, []);
@@ -86,12 +86,13 @@ export default function App() {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar
+        page={page}
         selectedProjectId={projectId}
         onSelectProject={setProjectId}
         collapsed={sidebarCollapsed}
         onToggle={toggleSidebar}
         onOpenTasks={() => setPage("tasks")}
-        onOpenMyGithub={() => setPage("my-github")}
+        onOpenSettings={() => setPage("settings")}
         onSelectProjectRow={(id) => { setProjectId(id); setPage("tasks"); }}
       />
       <main className="flex-1 h-screen flex flex-col min-w-0">
@@ -112,8 +113,8 @@ export default function App() {
           />
         )}
         <section className="flex-1 overflow-auto p-4">
-          {page === "my-github" ? (
-            <MyGithubPage />
+          {page === "settings" ? (
+            <SettingsPage />
           ) : page === "library" ? (
             <LibraryPage projectId={projectId} initialBookId={libraryBookId} onBack={() => setPage("tasks")} />
           ) : page === "project-settings" && projectId ? (

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ContributionsChart } from "@/components/github/ContributionsChart";
 import { cn } from "@/lib/utils";
 
-export function MyGithubPage() {
+export function GithubSettings() {
   const { data: status } = useGithubStatus();
   const disconnect = useDisconnectGithub();
   const connected = !!status?.user;
@@ -14,12 +14,10 @@ export function MyGithubPage() {
   const [expanded, setExpanded] = useState<number | null>(null);
 
   return (
-    <div className="max-w-6xl mx-auto p-6 flex flex-col gap-6">
-      <h1 className="font-display text-2xl font-bold">My GitHub</h1>
-
-      {/* Account */}
+    <div className="flex flex-col gap-6">
+      {/* Connection */}
       <section className="rounded-lg border border-border p-4 flex flex-col gap-3 bg-surface">
-        <div className="font-mono text-xs uppercase tracking-wide text-ink-muted">Account</div>
+        <div className="font-mono text-xs uppercase tracking-wide text-ink-muted">GitHub</div>
         {connected ? (
           <div className="flex items-center gap-3">
             <img src={status!.user!.avatarUrl} alt="" className="size-8 rounded-full" />
@@ -27,9 +25,12 @@ export function MyGithubPage() {
             <Button variant="ghost" size="sm" className="ml-auto" onClick={() => disconnect.mutate()}>Disconnect</Button>
           </div>
         ) : (
-          <a href={`${apiBase}/github/authorize`}>
-            <Button>Authorize GitHub</Button>
-          </a>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm text-ink-muted">Connect your GitHub account to see your contribution chart and link repos.</span>
+            <a href={`${apiBase}/github/authorize`}>
+              <Button>Authorize GitHub</Button>
+            </a>
+          </div>
         )}
       </section>
 
