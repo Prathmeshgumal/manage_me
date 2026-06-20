@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Shelf, Book, Page, CreateBookInput, UpdateBookInput, UpdateShelfInput, CreatePageInput, UpdatePageInput } from "@/types";
+import type { Shelf, Book, BookSummary, Page, PageSummary, CreateBookInput, UpdateBookInput, UpdateShelfInput, CreatePageInput, UpdatePageInput } from "@/types";
 import { api } from "@/lib/api";
 
 export function useShelf(projectId: string | null) {
@@ -19,9 +19,45 @@ export function useUpdateShelf(projectId: string | null) {
 
 export function useCreateBook(projectId: string | null) {
   const qc = useQueryClient();
+  const key = ["library", "shelf", projectId];
   return useMutation({
     mutationFn: ({ shelfId, input }: { shelfId: string; input: CreateBookInput }) => api.post<Book>(`/shelves/${shelfId}/books`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["library", "shelf", projectId] }),
+    // Optimistically show the new book immediately; reconcile with the server
+    // response instead of refetching the whole shelf (avoids a second slow round-trip).
+    onMutate: async ({ input }) => {
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<Shelf>(key);
+      const tempId = `temp-${crypto.randomUUID()}`;
+      if (previous) {
+        const optimistic: BookSummary = {
+          id: tempId,
+          name: input.name,
+          description: input.description ?? null,
+          color: input.color ?? "#888888",
+          sortOrder: previous.books.length,
+          pageCount: 0,
+        };
+        qc.setQueryData<Shelf>(key, { ...previous, books: [...previous.books, optimistic] });
+      }
+      return { previous, tempId };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.previous) qc.setQueryData(key, ctx.previous);
+    },
+    onSuccess: (created, _v, ctx) => {
+      qc.setQueryData<Shelf>(key, (cur) => {
+        if (!cur) return cur;
+        const summary: BookSummary = {
+          id: created.id,
+          name: created.name,
+          description: created.description,
+          color: created.color,
+          sortOrder: created.sortOrder,
+          pageCount: created.pages.length,
+        };
+        return { ...cur, books: cur.books.map((b) => (b.id === ctx?.tempId ? summary : b)) };
+      });
+    },
   });
 }
 
@@ -54,9 +90,39 @@ export function useDeleteBook(projectId: string | null) {
 
 export function useCreatePage(bookId: string | null) {
   const qc = useQueryClient();
+  const key = ["library", "book", bookId];
   return useMutation({
     mutationFn: (input: CreatePageInput) => api.post<Page>(`/books/${bookId}/pages`, input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["library", "book", bookId] }),
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<Book>(key);
+      const tempId = `temp-${crypto.randomUUID()}`;
+      if (previous) {
+        const optimistic: PageSummary = {
+          id: tempId,
+          title: input.title,
+          sortOrder: previous.pages.length,
+          updatedAt: new Date().toISOString(),
+        };
+        qc.setQueryData<Book>(key, { ...previous, pages: [...previous.pages, optimistic] });
+      }
+      return { previous, tempId };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.previous) qc.setQueryData(key, ctx.previous);
+    },
+    onSuccess: (created, _v, ctx) => {
+      qc.setQueryData<Book>(key, (cur) => {
+        if (!cur) return cur;
+        const summary: PageSummary = {
+          id: created.id,
+          title: created.title,
+          sortOrder: created.sortOrder,
+          updatedAt: created.updatedAt,
+        };
+        return { ...cur, pages: cur.pages.map((p) => (p.id === ctx?.tempId ? summary : p)) };
+      });
+    },
   });
 }
 
