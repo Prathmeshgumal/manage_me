@@ -1,8 +1,10 @@
 # MySchedule backend (FastAPI)
 
-Python reimplementation of the core backend. API-compatible with the frontend
-(`auth`, `tasks`, `projects`, `labels`, `library`). GitHub integration is not
-yet ported (Phase 2) and still lives in the TypeScript `backend/`.
+Python reimplementation of the backend, API-compatible with the frontend:
+`auth`, `tasks`, `projects`, `labels`, `library`, and `github` (OAuth, App
+installations, repositories, file browser, contributions). This is a full
+drop-in replacement for the TypeScript `backend/`; cutover to production is the
+remaining step.
 
 ## Setup (local)
 
