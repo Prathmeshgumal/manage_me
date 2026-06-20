@@ -1,7 +1,8 @@
-import { Plus, Search, CalendarClock, PanelLeftOpen, Settings } from "lucide-react";
+import { Plus, Search, CalendarClock, PanelLeftOpen, Settings, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DUE_BUCKET_ORDER, dueBucketMeta, type DueBucket } from "@/lib/dueDate";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
 
 export type ViewMode = "board" | "list";
@@ -15,6 +16,7 @@ export function Topbar({ view, onView, groupBy, onGroupBy, dueFilter, onDueFilte
   sidebarCollapsed: boolean; onToggleSidebar: () => void;
   projectSelected: boolean; onOpenProjectSettings: () => void;
 }) {
+  const { theme, toggle } = useTheme();
   const seg = (active: boolean) =>
     cn("px-3 py-1 text-sm rounded-md font-mono transition-colors",
       active ? "bg-ink text-bg" : "text-ink-muted hover:text-ink");
@@ -59,6 +61,9 @@ export function Topbar({ view, onView, groupBy, onGroupBy, dueFilter, onDueFilte
         </Button>
         <Button onClick={onNewTask} className="gap-1">
           <Plus className="size-4" /> New
+        </Button>
+        <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
+          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
         </Button>
       </div>
     </header>
