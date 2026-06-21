@@ -8,7 +8,8 @@ async def test_project_crud(auth_client):
     assert c.status_code == 201
     p = c.json()
     assert p["name"] == "Site" and p["color"] == "#8A8A86"
-    assert set(p) == {"id", "name", "color", "githubRepoId", "githubRepoFullName", "githubInstallationId", "createdAt", "updatedAt"}
+    assert p["key"] == "SIT"
+    assert set(p) == {"id", "name", "key", "color", "githubRepoId", "githubRepoFullName", "githubInstallationId", "createdAt", "updatedAt"}
     pid = p["id"]
 
     assert len((await client.get("/projects")).json()) == 1

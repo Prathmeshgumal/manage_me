@@ -27,7 +27,22 @@ export function ProjectSettingsPage({ projectId, onBack, onDeleted, onOpenBook }
   const { data: repos = [] } = useRepositories(hasInstalls);
 
   const [name, setName] = useState("");
-  useEffect(() => { if (project) setName(project.name); }, [project?.id]);
+  const [key, setKey] = useState("");
+  const [keyError, setKeyError] = useState<string | null>(null);
+  useEffect(() => { if (project) { setName(project.name); setKey(project.key); setKeyError(null); } }, [project?.id]);
+
+  function saveKey() {
+    if (!project) return;
+    const next = key.trim().toUpperCase();
+    setKey(next);
+    if (!next || next === project.key) { setKeyError(null); return; }
+    if (!/^[A-Z0-9]{2,6}$/.test(next)) { setKeyError("2–6 letters or digits"); return; }
+    setKeyError(null);
+    update.mutate(
+      { id: project.id, patch: { key: next } },
+      { onError: () => { setKeyError("Key already in use"); setKey(project.key); } },
+    );
+  }
 
   if (!project) {
     return (
@@ -79,6 +94,18 @@ export function ProjectSettingsPage({ projectId, onBack, onDeleted, onOpenBook }
               onChange={(e) => setName(e.target.value)}
               onBlur={() => name.trim() && name.trim() !== project.name && update.mutate({ id: project.id, patch: { name: name.trim() } })}
             />
+            <div className="font-mono text-xs uppercase tracking-wide text-ink-muted mt-2">Task key</div>
+            <Input
+              value={key}
+              onChange={(e) => setKey(e.target.value.toUpperCase())}
+              onBlur={saveKey}
+              maxLength={6}
+              className="font-mono w-32"
+              aria-label="Project task key"
+            />
+            <p className={cn("text-xs", keyError ? "text-destructive" : "text-ink-muted")}>
+              {keyError ?? `Task ids look like ${(key || project.key)}-001`}
+            </p>
             <div className="font-mono text-xs uppercase tracking-wide text-ink-muted mt-2">Color</div>
             <div className="flex items-center gap-2">
               {SWATCHES.map((c) => (

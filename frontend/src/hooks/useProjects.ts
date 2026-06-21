@@ -18,7 +18,10 @@ export function useUpdateProject() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: UpdateProjectInput }) => api.patch<Project>(`/projects/${id}`, patch),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["projects"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      qc.invalidateQueries({ queryKey: ["tasks"] }); // a key change rewrites task identifiers
+    },
   });
 }
 

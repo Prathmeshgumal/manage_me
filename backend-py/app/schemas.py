@@ -50,8 +50,12 @@ class TaskFilter(CamelModel):
     label_id: str | None = None
 
 
+KEY = r"^[A-Za-z0-9]{2,6}$"
+
+
 class CreateProject(CamelModel):
     name: str = Field(min_length=1, max_length=200)
+    key: str | None = Field(default=None, pattern=KEY)
     color: str = Field(default="#8A8A86", pattern=HEX)
     github_repo_id: int | None = None
     github_repo_full_name: str | None = None
@@ -60,6 +64,7 @@ class CreateProject(CamelModel):
 
 class UpdateProject(CamelModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
+    key: str | None = Field(default=None, pattern=KEY)
     color: str | None = Field(default=None, pattern=HEX)
     github_repo_id: int | None = None
     github_repo_full_name: str | None = None

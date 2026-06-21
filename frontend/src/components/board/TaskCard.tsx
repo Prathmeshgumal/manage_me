@@ -16,7 +16,7 @@ export function TaskCardView({ task, className }: { task: Task; className?: stri
         aria-hidden
       />
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[11px] text-ink-muted">{task.id.slice(0, 6)}</span>
+        <span className="font-mono text-[11px] text-ink-muted">{task.identifier}</span>
         <span className="font-mono text-[11px]" style={{ color: meta.color }} title={meta.label}>
           {meta.glyph}
         </span>

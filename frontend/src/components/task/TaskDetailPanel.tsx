@@ -50,7 +50,7 @@ export function TaskDetailPanel({ task, open, onOpenChange }: {
         className="mx-auto max-w-3xl rounded-t-2xl h-[90vh] overflow-y-auto flex flex-col gap-4"
       >
         <SheetHeader className="p-0">
-          <SheetTitle className="font-mono text-xs text-ink-muted text-left">{task.id.slice(0, 6)}</SheetTitle>
+          <SheetTitle className="font-mono text-xs text-ink-muted text-left">{task.identifier}</SheetTitle>
         </SheetHeader>
 
         <Input

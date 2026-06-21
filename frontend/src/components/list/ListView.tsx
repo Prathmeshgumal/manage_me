@@ -17,7 +17,7 @@ function RowView({ task, className }: { task: Task; className?: string }) {
   return (
     <div className={cn("w-full flex items-center gap-3 px-3 py-2 text-left", className)}>
       <span className="font-mono text-[11px]" style={{ color: m.color }} title={m.label}>{m.glyph}</span>
-      <span className="font-mono text-[11px] text-ink-muted w-14">{task.id.slice(0, 6)}</span>
+      <span className="font-mono text-[11px] text-ink-muted w-16">{task.identifier}</span>
       <span className="text-sm flex-1">{task.title}</span>
       {task.labels.map((l) => (
         <span key={l.id} className="size-2 rounded-sm" style={{ background: l.color }} title={l.name} />

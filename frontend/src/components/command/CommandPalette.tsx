@@ -30,8 +30,8 @@ export function CommandPalette({ open, onOpenChange, actions, tasks, onOpenTask 
         </CommandGroup>
         <CommandGroup heading="Tasks">
           {tasks.map((t) => (
-            <CommandItem key={t.id} value={`${t.id} ${t.title}`} onSelect={() => run(() => onOpenTask(t))}>
-              <span className="font-mono text-[11px] text-ink-muted mr-2">{t.id.slice(0, 6)}</span>
+            <CommandItem key={t.id} value={`${t.identifier} ${t.title}`} onSelect={() => run(() => onOpenTask(t))}>
+              <span className="font-mono text-[11px] text-ink-muted mr-2">{t.identifier}</span>
               {t.title}
             </CommandItem>
           ))}

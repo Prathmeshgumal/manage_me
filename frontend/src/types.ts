@@ -12,6 +12,8 @@ export interface LabelRef {
 
 export interface Task {
   id: string;
+  identifier: string;
+  number: number | null;
   title: string;
   description: string | null;
   status: Status;
@@ -27,6 +29,7 @@ export interface Task {
 export interface Project {
   id: string;
   name: string;
+  key: string;
   color: string;
   githubRepoId: number | null;
   githubRepoFullName: string | null;
@@ -72,6 +75,7 @@ export interface UpdateTaskInput {
 
 export interface CreateProjectInput {
   name: string;
+  key?: string;
   color?: string;
   githubRepoId?: number | null;
   githubRepoFullName?: string | null;

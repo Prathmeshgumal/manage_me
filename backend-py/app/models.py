@@ -33,6 +33,8 @@ class Workspace(Base):
     __tablename__ = "Workspace"
     id: Mapped[str] = mapped_column(primary_key=True, default=new_id)
     name: Mapped[str] = mapped_column(default="My Workspace")
+    # Sequence for tasks that don't belong to any project (shown as TSK-001…).
+    next_task_number: Mapped[int] = mapped_column("nextTaskNumber", default=1, server_default="1")
     created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
 
 
@@ -58,6 +60,9 @@ class Project(Base):
     __tablename__ = "Project"
     id: Mapped[str] = mapped_column(primary_key=True, default=new_id)
     name: Mapped[str]
+    # Short uppercase identifier used to build task ids (e.g. "MAM" -> MAM-001).
+    key: Mapped[str] = mapped_column(default="PRJ")
+    next_task_number: Mapped[int] = mapped_column("nextTaskNumber", default=1, server_default="1")
     color: Mapped[str] = mapped_column(default="#8A8A86")
     github_repo_id: Mapped[int | None] = mapped_column("githubRepoId")
     github_repo_full_name: Mapped[str | None] = mapped_column("githubRepoFullName")
@@ -86,6 +91,8 @@ class Task(Base):
     priority: Mapped[str] = mapped_column(PRIORITY, default="NONE")
     due_date: Mapped[datetime | None] = mapped_column("dueDate")
     sort_order: Mapped[float] = mapped_column("sortOrder", Float, default=0)
+    # Per-project (or per-workspace, when no project) sequence number for the task id.
+    number: Mapped[int | None]
     project_id: Mapped[str | None] = mapped_column("projectId", ForeignKey("Project.id", ondelete="SET NULL"))
     workspace_id: Mapped[str] = mapped_column("workspaceId", ForeignKey("Workspace.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
@@ -93,6 +100,7 @@ class Task(Base):
     deleted_at: Mapped[datetime | None] = mapped_column("deletedAt")
     deleted_with_project: Mapped[bool] = mapped_column("deletedWithProject", default=False, server_default=sa_false())
     labels: Mapped[list["Label"]] = relationship(secondary=label_task, lazy="selectin")
+    project: Mapped["Project | None"] = relationship(lazy="selectin")
 
 
 class Shelf(Base):
