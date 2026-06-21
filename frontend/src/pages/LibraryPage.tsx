@@ -65,56 +65,53 @@ export function LibraryPage({ projectId, initialBookId, onBack }: {
       </div>
 
       {nav.level === "shelf" && (
-        <>
-          <div className="flex flex-col lg:flex-row gap-6 items-stretch h-[74vh]">
-            <div className="flex-1 min-w-0 w-full flex flex-col gap-1.5">
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setShowList((s) => !s)}
-                  aria-label={showList ? "Hide book list" : "Show book list"}
-                  title={showList ? "Hide book list" : "Show book list"}
-                  className="rounded-md border border-border bg-surface text-ink-muted hover:text-ink p-1.5"
-                >
-                  <ChevronDown className={`size-4 transition-transform ${showList ? "rotate-180" : ""}`} />
-                </button>
-              </div>
-              <div className="flex-1 min-h-0">
-                <BookShelf
-                  books={shelf.books}
-                  onOpenBook={(id) => setNav({ level: "book", bookId: id })}
-                  onAddBook={(name) => createBook.mutate({ shelfId: shelf.id, input: { name, color: randomBookColor() } })}
-                />
-              </div>
+        <div className="flex flex-col lg:flex-row gap-6 items-stretch min-h-[74vh]">
+          <div className="flex-1 min-w-0 w-full flex flex-col gap-1.5">
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowList((s) => !s)}
+                aria-label={showList ? "Hide book list" : "Show book list"}
+                title={showList ? "Hide book list" : "Show book list"}
+                className="rounded-md border border-border bg-surface text-ink-muted hover:text-ink p-1.5"
+              >
+                <ChevronDown className={`size-4 transition-transform ${showList ? "rotate-180" : ""}`} />
+              </button>
             </div>
-            <div className="flex-1 min-w-0 w-full overflow-auto">
-              {showList && (
-                <BookList projectId={projectId} shelfId={shelf.id} books={shelf.books}
-                  variant="list"
-                  onOpenBook={(id) => setNav({ level: "book", bookId: id })} />
-              )}
+            <div className="flex-1 min-h-0">
+              <BookShelf
+                books={shelf.books}
+                onOpenBook={(id) => setNav({ level: "book", bookId: id })}
+                onAddBook={(name) => createBook.mutate({ shelfId: shelf.id, input: { name, color: randomBookColor() } })}
+              />
             </div>
           </div>
-
-          {isGeneral && orphans.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <span className="font-mono text-xs uppercase tracking-wide text-ink-muted">Archived project shelves</span>
-              <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-3">
-                {orphans.map((o) => (
-                  <button
-                    key={o.id}
-                    onClick={() => setNav({ level: "orphan", orphanShelfId: o.id })}
-                    title={o.name}
-                    className="aspect-square rounded-lg border border-border bg-surface hover:bg-bg flex flex-col items-center justify-center gap-1 p-2 text-center"
-                  >
-                    <Library className="size-6 text-ink-muted" />
-                    <span className="text-xs font-medium truncate w-full">{o.name}</span>
-                    <span className="font-mono text-[10px] text-ink-muted">{o.bookCount} book{o.bookCount === 1 ? "" : "s"}</span>
-                  </button>
-                ))}
+          <div className="flex-1 min-w-0 w-full overflow-auto flex flex-col gap-6">
+            {showList && (
+              <BookList projectId={projectId} shelfId={shelf.id} books={shelf.books}
+                variant="list"
+                onOpenBook={(id) => setNav({ level: "book", bookId: id })} />
+            )}
+            {isGeneral && orphans.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <span className="font-mono text-xs uppercase tracking-wide text-ink-muted">Archived project shelves</span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {orphans.map((o) => (
+                    <button
+                      key={o.id}
+                      onClick={() => setNav({ level: "orphan", orphanShelfId: o.id })}
+                      title={o.name}
+                      className="aspect-square rounded-lg border border-border bg-surface hover:bg-bg flex flex-col items-center justify-center gap-1 p-2 text-center"
+                    >
+                      <Library className="size-6 text-ink-muted" />
+                      <span className="text-xs font-medium truncate w-full">{o.name}</span>
+                      <span className="font-mono text-[10px] text-ink-muted">{o.bookCount} book{o.bookCount === 1 ? "" : "s"}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </>
+            )}
+          </div>
+        </div>
       )}
 
       {nav.level === "orphan" && orphanShelf && (
