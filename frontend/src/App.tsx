@@ -133,7 +133,7 @@ export default function App() {
             </button>
           </header>
         )}
-        <section className="flex-1 overflow-auto p-4">
+        <section className="flex-1 overflow-auto p-4 no-scrollbar">
           {page === "settings" ? (
             <SettingsPage />
           ) : page === "library" ? (
