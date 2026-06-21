@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PanelLeftOpen } from "lucide-react";
 import type { Task } from "@/types";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar, type ViewMode, type GroupBy } from "@/components/layout/Topbar";
@@ -111,6 +112,23 @@ export default function App() {
             projectSelected={!!projectId}
             onOpenProjectSettings={() => setPage("project-settings")}
           />
+        )}
+        {!["tasks", "library"].includes(page) && (
+          <header className="h-14 border-b border-border flex items-center px-4 bg-surface">
+            {sidebarCollapsed && (
+              <button className="p-2 rounded hover:bg-surface-muted mr-2" onClick={toggleSidebar} aria-label="Open sidebar">
+                <PanelLeftOpen className="size-4" />
+              </button>
+            )}
+            <h1 className="font-display text-xl font-bold">{page === "settings" ? "Settings" : "Project Settings"}</h1>
+          </header>
+        )}
+        {page === "library" && sidebarCollapsed && (
+          <header className="h-14 border-b border-border flex items-center px-4 bg-surface">
+            <button className="p-2 rounded hover:bg-surface-muted mr-2" onClick={toggleSidebar} aria-label="Open sidebar">
+              <PanelLeftOpen className="size-4" />
+            </button>
+          </header>
         )}
         <section className="flex-1 overflow-auto p-4">
           {page === "settings" ? (
