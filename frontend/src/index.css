@@ -14,6 +14,65 @@
   }
 }
 
+@layer components {
+  /* Central markdown rendering — GitHub-like, themed to the app's tokens so it
+     adapts to light/dark automatically (no prose-invert needed). Used by the
+     shared <Markdown> component everywhere user text is displayed. */
+  .markdown-body {
+    --tw-prose-body: var(--ink);
+    --tw-prose-headings: var(--ink);
+    --tw-prose-lead: var(--ink-muted);
+    --tw-prose-links: var(--ink);
+    --tw-prose-bold: var(--ink);
+    --tw-prose-counters: var(--ink-muted);
+    --tw-prose-bullets: var(--ink-muted);
+    --tw-prose-hr: var(--border);
+    --tw-prose-quotes: var(--ink-muted);
+    --tw-prose-quote-borders: var(--border);
+    --tw-prose-captions: var(--ink-muted);
+    --tw-prose-code: var(--ink);
+    --tw-prose-pre-code: #e6edf3;
+    --tw-prose-pre-bg: #0d1117;
+    --tw-prose-th-borders: var(--border);
+    --tw-prose-td-borders: var(--border);
+  }
+  .markdown-body > :first-child { margin-top: 0; }
+  .markdown-body > :last-child { margin-bottom: 0; }
+
+  /* GitHub blue links */
+  .markdown-body a { color: #0969da; text-decoration: none; font-weight: 500; }
+  .markdown-body a:hover { text-decoration: underline; }
+  .dark .markdown-body a { color: #58a6ff; }
+
+  /* GFM task lists: drop the bullet, align the checkbox */
+  .markdown-body ul:has(> li > input[type="checkbox"]),
+  .markdown-body ul.contains-task-list { list-style: none; padding-left: 0.25rem; }
+  .markdown-body li.task-list-item { padding-left: 0; }
+  .markdown-body li.task-list-item input[type="checkbox"] { margin-right: 0.5em; vertical-align: middle; }
+
+  /* Inline code chips */
+  .markdown-body :not(pre) > code {
+    background: var(--secondary);
+    padding: 0.15em 0.35em;
+    border-radius: 0.35em;
+    font-size: 0.85em;
+    font-weight: 500;
+  }
+  .markdown-body :not(pre) > code::before,
+  .markdown-body :not(pre) > code::after { content: ""; }
+
+  /* Code blocks */
+  .markdown-body pre { border: 1px solid var(--border); border-radius: 0.5rem; }
+
+  /* Tables: bordered cells, header + zebra striping */
+  .markdown-body table { display: block; width: max-content; max-width: 100%; overflow: auto; }
+  .markdown-body th, .markdown-body td { border: 1px solid var(--border); padding: 0.4em 0.8em; }
+  .markdown-body thead th { background: var(--secondary); }
+  .markdown-body tbody tr:nth-child(2n) td { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+
+  .markdown-body img { max-width: 100%; border-radius: 0.5rem; }
+}
+
 @layer base {
   :root {
     /* shadcn semantic tokens — Signal "light / paper" */
