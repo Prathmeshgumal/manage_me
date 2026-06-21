@@ -15,3 +15,23 @@ class PriorityEnum(str, Enum):
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     URGENT = "URGENT"
+
+
+class WishlistCategoryEnum(str, Enum):
+    ITEMS = "Items"
+    PLACES = "Places"
+    GOALS = "Goals"
+    OTHER = "Other"
+
+
+class WishlistItemStatusEnum(str, Enum):
+    WISHLIST = "WISHLIST"
+    SAVING = "SAVING"
+    PURCHASED = "PURCHASED"
+    ARCHIVED = "ARCHIVED"
+
+
+class WishlistItemPriorityEnum(str, Enum):
+    MUST_HAVE = "MUST_HAVE"
+    NICE_TO_HAVE = "NICE_TO_HAVE"
+    DREAM = "DREAM"

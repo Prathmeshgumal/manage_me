@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from .enums import PriorityEnum, StatusEnum
+from .enums import PriorityEnum, StatusEnum, WishlistCategoryEnum, WishlistItemPriorityEnum, WishlistItemStatusEnum
 
 HEX = r"^#([0-9a-fA-F]{6})$"
 
@@ -100,3 +100,40 @@ class CreatePage(CamelModel):
 class UpdatePage(CamelModel):
     title: str | None = Field(default=None, min_length=1, max_length=300)
     content: str | None = Field(default=None, max_length=500000)
+
+
+class CreateWishlist(CamelModel):
+    name: str = Field(min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=5000)
+    category: WishlistCategoryEnum = WishlistCategoryEnum.OTHER
+    icon: str | None = Field(default=None, max_length=50)
+    color: str = Field(default="#8A8A86", pattern=HEX)
+
+
+class UpdateWishlist(CamelModel):
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=5000)
+    category: WishlistCategoryEnum | None = None
+    icon: str | None = Field(default=None, max_length=50)
+    color: str | None = Field(default=None, pattern=HEX)
+
+
+class CreateWishlistItem(CamelModel):
+    title: str = Field(min_length=1, max_length=500)
+    description: str | None = Field(default=None, max_length=20000)
+    price: float | None = Field(default=None, ge=0)
+    currency: str = Field(default="INR", max_length=10)
+    status: WishlistItemStatusEnum = WishlistItemStatusEnum.WISHLIST
+    priority: WishlistItemPriorityEnum = WishlistItemPriorityEnum.NICE_TO_HAVE
+    target_date: datetime | None = None
+
+
+class UpdateWishlistItem(CamelModel):
+    title: str | None = Field(default=None, min_length=1, max_length=500)
+    description: str | None = Field(default=None, max_length=20000)
+    price: float | None = Field(default=None, ge=0)
+    currency: str | None = Field(default=None, max_length=10)
+    status: WishlistItemStatusEnum | None = None
+    priority: WishlistItemPriorityEnum | None = None
+    target_date: datetime | None = None
+    sort_order: float | None = None
