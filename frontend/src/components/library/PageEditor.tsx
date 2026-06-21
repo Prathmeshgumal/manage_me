@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Markdown } from "@/components/ui/markdown";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Button } from "@/components/ui/button";
 import { usePage, useUpdatePage, useDeletePage } from "@/hooks/useLibrary";
 
@@ -49,16 +48,15 @@ export function PageEditor({ pageId, bookId, onDeleted }: {
         </div>
         {editing ? (
           <div className="flex flex-col gap-2">
-            <Textarea autoFocus className="min-h-64 font-mono text-sm" placeholder="Write markdown…"
-              value={content} onChange={(e) => setContent(e.target.value)} />
+            <MarkdownEditor autoFocus defaultMode="write" minHeight="min-h-64" value={content} onChange={setContent} />
             <div className="flex items-center gap-2 justify-end">
               <Button variant="ghost" size="sm" onClick={() => { setContent(page.content); setEditing(false); }}>Cancel</Button>
               <Button size="sm" onClick={() => update.mutate({ id: page.id, patch: { content } }, { onSuccess: () => setEditing(false) })}>Save</Button>
             </div>
           </div>
         ) : content.trim() ? (
-          <div className="prose prose-sm max-w-none dark:prose-invert rounded-lg border border-border p-4">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+          <div className="rounded-lg border border-border p-4">
+            <Markdown>{content}</Markdown>
           </div>
         ) : (
           <button onClick={() => setEditing(true)}

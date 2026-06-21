@@ -65,7 +65,53 @@ Each gets its own design + plan cycle when we reach it.
 **Sub-project 3 — Collaboration polish (later spec, optional)**
 - Activity/attribution ("created by X"), optional real-time updates
 
-### Phase 3 — Richer Task Management
+### Phase 3 — Wishlist & Financial Planning
+
+> Design: `docs/superpowers/specs/2026-06-21-wishlist-design.md` (to be created)
+
+A personal wishlist system for tracking items to purchase, places to visit, and goals to achieve.
+
+**Core Structure**
+
+**Wishlist** (belongs to a category)
+- Name, description, category (Items, Places, Goals, etc.)
+- Icon/color for visual distinction
+- Budget allocation (optional)
+- Target timeframe
+
+**Wishlist Item**
+- Title & markdown description (supports URLs, images, formatting)
+- Price + currency
+- Status: Wishlist → Saving → Purchased → Archived
+- Priority: Must-have / Nice-to-have / Dream
+- Created date, target purchase date
+- Tags
+
+**Views**
+- All Wishlists — Dashboard with totals, budgets, priority items
+- Single Wishlist — Detailed list with sorting/filtering
+- Analytics — Spending patterns, savings rate, price trends
+
+**MVP Features**
+- [ ] Sidebar section "Wishlists" below Shelves
+- [ ] Create/edit/delete wishlists with categories
+- [ ] Add/edit/delete items with title, description (markdown), price, status, dates
+- [ ] List view with sorting and filtering
+- [ ] Basic analytics (total wishlisted, by category, by status)
+
+**Game-Changing Features (Future)**
+- Savings Tracker — Link items to savings goals, show % saved
+- Price History — Track price changes over time with charts
+- Price Alerts — Notify when price drops below threshold
+- Smart Suggestions — "Buy now" vs "wait" based on price trends
+- Financial Impact — Show how purchase affects monthly budget
+- Comparison Mode — Compare multiple items, pick best value
+- Priority Scoring — AI suggest priority based on utility/price ratio
+- Shared Wishlists — Family/friends can view for gifting
+- Browser Extension — One-click add from any product page
+- Recurring Items — Track subscription renewals
+
+### Phase 4 — Richer Task Management
 - Comments & activity history
 - Sub-tasks / checklists
 - Attachments
@@ -73,18 +119,18 @@ Each gets its own design + plan cycle when we reach it.
 - Full-text search with ranking
 - Cycles / sprints
 
-### Phase 4 — Project Planning
+### Phase 5 — Project Planning
 - Project pages with milestones, progress, timeline/roadmap views
 - Project-level priorities and grouping
 
-### Phase 5 — Notion-style Docs
+### Phase 6 — Notion-style Docs
 - Rich document/wiki editor, nested pages, linking docs to tasks/projects
 
-### Phase 6 — Collaboration & Notifications
+### Phase 7 — Collaboration & Notifications
 - Real-time updates (websockets)
 - Notifications (in-app + email)
 
-### Phase 7 — Mobile App
+### Phase 8 — Mobile App
 - Native or cross-platform app consuming the same API
 
 ---

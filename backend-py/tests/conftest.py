@@ -27,8 +27,8 @@ _BACKEND_DIR = Path(__file__).resolve().parent.parent
 _ALEMBIC = str(Path(sys.executable).parent / "alembic")
 
 _TABLES = [
-    '"_LabelToTask"', '"Page"', '"Book"', '"Shelf"', '"Task"', '"Label"',
-    '"Project"', '"Session"', '"Membership"', '"Workspace"', '"User"',
+    '"_LabelToTask"', '"WishlistItem"', '"Wishlist"', '"Page"', '"Book"', '"Shelf"',
+    '"Task"', '"Label"', '"Project"', '"Session"', '"Membership"', '"Workspace"', '"User"',
 ]
 
 

@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { Pencil, Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Markdown } from "@/components/ui/markdown";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -99,21 +98,15 @@ export function TaskDetailPanel({ task, open, onOpenChange }: {
 
           {editingDesc ? (
             <div className="flex flex-col gap-2">
-              <Textarea
-                autoFocus
-                className="min-h-48 font-mono text-sm"
-                placeholder="Write markdown…"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
+              <MarkdownEditor autoFocus defaultMode="write" value={description} onChange={setDescription} />
               <div className="flex items-center gap-2 justify-end">
                 <Button variant="ghost" size="sm" onClick={cancelEdit}>Cancel</Button>
                 <Button size="sm" onClick={saveDescription}>Save</Button>
               </div>
             </div>
           ) : description.trim() ? (
-            <div className="prose prose-sm max-w-none dark:prose-invert rounded-lg border border-border p-4">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{description}</ReactMarkdown>
+            <div className="rounded-lg border border-border p-4">
+              <Markdown>{description}</Markdown>
             </div>
           ) : (
             <button

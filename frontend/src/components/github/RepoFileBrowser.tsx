@@ -1,7 +1,6 @@
 import { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { Folder, FileText, ChevronRight } from "lucide-react";
+import { Markdown } from "@/components/ui/markdown";
 import { useRepoContents } from "@/hooks/useGithub";
 
 export function RepoFileBrowser({ installationId, owner, repo }: {
@@ -52,8 +51,8 @@ export function RepoFileBrowser({ installationId, owner, repo }: {
       ) : data.tooLarge ? (
         <p className="text-sm text-ink-muted">File too large to preview ({data.size} bytes).</p>
       ) : data.name.toLowerCase().endsWith(".md") ? (
-        <div className="prose prose-sm max-w-none dark:prose-invert rounded-lg border border-border p-4">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{data.content}</ReactMarkdown>
+        <div className="rounded-lg border border-border p-4">
+          <Markdown>{data.content}</Markdown>
         </div>
       ) : (
         <pre className="rounded-lg border border-border p-4 overflow-x-auto text-xs font-mono leading-relaxed">

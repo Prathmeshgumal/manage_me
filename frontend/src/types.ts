@@ -131,3 +131,75 @@ export interface TrashBundle {
   pages: { id: string; title: string; deletedAt: string }[];
 }
 export interface OrphanShelf { id: string; name: string; bookCount: number; }
+
+export type WishlistCategory = "Items" | "Places" | "Goals" | "Other";
+export type WishlistItemStatus = "WISHLIST" | "SAVING" | "PURCHASED" | "ARCHIVED";
+export type WishlistItemPriority = "MUST_HAVE" | "NICE_TO_HAVE" | "DREAM";
+
+export interface Wishlist {
+  id: string;
+  name: string;
+  description: string | null;
+  category: WishlistCategory;
+  icon: string | null;
+  color: string;
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WishlistDetail extends Wishlist {
+  items: WishlistItem[];
+}
+
+export interface WishlistItem {
+  id: string;
+  wishlistId: string;
+  title: string;
+  description: string | null;
+  price: number | null;
+  currency: string;
+  status: WishlistItemStatus;
+  priority: WishlistItemPriority;
+  targetDate: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateWishlistInput {
+  name: string;
+  description?: string | null;
+  category?: WishlistCategory;
+  icon?: string | null;
+  color?: string;
+}
+
+export interface UpdateWishlistInput {
+  name?: string;
+  description?: string | null;
+  category?: WishlistCategory;
+  icon?: string | null;
+  color?: string;
+}
+
+export interface CreateWishlistItemInput {
+  title: string;
+  description?: string | null;
+  price?: number | null;
+  currency?: string;
+  status?: WishlistItemStatus;
+  priority?: WishlistItemPriority;
+  targetDate?: string | null;
+}
+
+export interface UpdateWishlistItemInput {
+  title?: string;
+  description?: string | null;
+  price?: number | null;
+  currency?: string;
+  status?: WishlistItemStatus;
+  priority?: WishlistItemPriority;
+  targetDate?: string | null;
+  sortOrder?: number;
+}

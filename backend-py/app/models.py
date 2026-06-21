@@ -155,3 +155,37 @@ class GithubInstallation(Base):
     workspace_id: Mapped[str] = mapped_column("workspaceId", ForeignKey("Workspace.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
+
+
+WISHLIST_CATEGORY = ENUM("Items", "Places", "Goals", "Other", name="WishlistCategory", create_type=False)
+WISHLIST_ITEM_STATUS = ENUM("WISHLIST", "SAVING", "PURCHASED", "ARCHIVED", name="WishlistItemStatus", create_type=False)
+WISHLIST_ITEM_PRIORITY = ENUM("MUST_HAVE", "NICE_TO_HAVE", "DREAM", name="WishlistItemPriority", create_type=False)
+
+
+class Wishlist(Base):
+    __tablename__ = "Wishlist"
+    id: Mapped[str] = mapped_column(primary_key=True, default=new_id)
+    name: Mapped[str] = mapped_column(default="New Wishlist")
+    description: Mapped[str | None]
+    category: Mapped[str] = mapped_column(WISHLIST_CATEGORY, default="Other")
+    icon: Mapped[str | None]
+    color: Mapped[str] = mapped_column(default="#8A8A86")
+    workspace_id: Mapped[str] = mapped_column("workspaceId", ForeignKey("Workspace.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
+
+
+class WishlistItem(Base):
+    __tablename__ = "WishlistItem"
+    id: Mapped[str] = mapped_column(primary_key=True, default=new_id)
+    wishlist_id: Mapped[str] = mapped_column("wishlistId", ForeignKey("Wishlist.id", ondelete="CASCADE"))
+    title: Mapped[str]
+    description: Mapped[str | None]
+    price: Mapped[float | None]
+    currency: Mapped[str] = mapped_column(default="INR")
+    status: Mapped[str] = mapped_column(WISHLIST_ITEM_STATUS, default="WISHLIST")
+    priority: Mapped[str] = mapped_column(WISHLIST_ITEM_PRIORITY, default="NICE_TO_HAVE")
+    target_date: Mapped[datetime | None] = mapped_column("targetDate")
+    sort_order: Mapped[float] = mapped_column("sortOrder", Float, default=0)
+    created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
