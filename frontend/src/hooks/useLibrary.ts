@@ -38,15 +38,16 @@ export function useCreateBook(projectId: string | null) {
   const key = ["library", "shelf", projectId];
   return useMutation({
     mutationFn: ({ shelfId, input }: { shelfId: string; input: CreateBookInput }) => api.post<Book>(`/shelves/${shelfId}/books`, input),
-    // Optimistically show the new book immediately; reconcile with the server
-    // response instead of refetching the whole shelf (avoids a second slow round-trip).
+    // Canonical optimistic flow: show the book instantly, roll back on error, and
+    // reconcile against the server on settle. We invalidate rather than hand-merge
+    // the POST response because that response has no `pages`/final sortOrder —
+    // letting the refetch be the source of truth keeps the cache correct.
     onMutate: async ({ input }) => {
       await qc.cancelQueries({ queryKey: key });
       const previous = qc.getQueryData<Shelf>(key);
-      const tempId = `temp-${crypto.randomUUID()}`;
       if (previous) {
         const optimistic: BookSummary = {
-          id: tempId,
+          id: `temp-${crypto.randomUUID()}`,
           name: input.name,
           description: input.description ?? null,
           color: input.color ?? "#888888",
@@ -55,25 +56,12 @@ export function useCreateBook(projectId: string | null) {
         };
         qc.setQueryData<Shelf>(key, { ...previous, books: [...previous.books, optimistic] });
       }
-      return { previous, tempId };
+      return { previous };
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.previous) qc.setQueryData(key, ctx.previous);
     },
-    onSuccess: (created, _v, ctx) => {
-      qc.setQueryData<Shelf>(key, (cur) => {
-        if (!cur) return cur;
-        const summary: BookSummary = {
-          id: created.id,
-          name: created.name,
-          description: created.description,
-          color: created.color,
-          sortOrder: created.sortOrder,
-          pageCount: created.pages.length,
-        };
-        return { ...cur, books: cur.books.map((b) => (b.id === ctx?.tempId ? summary : b)) };
-      });
-    },
+    onSettled: () => qc.invalidateQueries({ queryKey: key }),
   });
 }
 
