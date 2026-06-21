@@ -134,7 +134,7 @@ export function BookShelf({ books, onOpenBook, onAddBook }: {
                   }}
                   onBlur={submit}
                   placeholder="Book name"
-                  className="self-center w-32 rounded bg-white text-ink text-xs px-2 py-1 outline-none"
+                  className="self-center w-32 rounded bg-white text-[#1A1A18] placeholder:text-[#6B6B64] text-xs px-2 py-1 outline-none"
                 />
               ) : (
                 <AddSpine onClick={() => { setName(""); setAddingRow(ri); }} />
