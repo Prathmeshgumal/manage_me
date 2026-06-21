@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ColorPicker } from "@/components/ui/color-picker";
 import { useCreateWishlist, useUpdateWishlist } from "@/hooks/useWishlists";
 import { CATEGORIES, CategoryIcon } from "@/components/wishlist/categories";
 import { cn } from "@/lib/utils";
@@ -100,19 +101,7 @@ export function WishlistDialog({
           </div>
           <div>
             <label className="text-xs text-ink-muted mb-1 block">Color</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="w-8 h-8 rounded cursor-pointer"
-              />
-              <Input
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="flex-1"
-              />
-            </div>
+            <ColorPicker value={color} onChange={setColor} />
           </div>
           <div className="flex justify-end gap-2 mt-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
