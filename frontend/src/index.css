@@ -69,12 +69,35 @@
   .markdown-body ul:has(> li > input[type="checkbox"]),
   .markdown-body ul.contains-task-list { list-style: none; padding-left: 0.25rem; }
   .markdown-body li.task-list-item { padding-left: 0; }
+  /* GFM renders task checkboxes as `disabled`, which browsers force-gray
+     (ignoring accent-color). Draw our own so the checked state is reliably red. */
   .markdown-body li.task-list-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
     margin-right: 0.5em;
     vertical-align: middle;
     width: 1em;
     height: 1em;
-    accent-color: #e5484d;
+    border: 1px solid var(--border);
+    border-radius: 0.25em;
+    position: relative;
+    opacity: 1;
+    cursor: default;
+  }
+  .markdown-body li.task-list-item input[type="checkbox"]:checked {
+    background: #e5484d;
+    border-color: #e5484d;
+  }
+  .markdown-body li.task-list-item input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 0.3em;
+    top: 0.12em;
+    width: 0.22em;
+    height: 0.48em;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
   }
 
   /* Inline code chips */
