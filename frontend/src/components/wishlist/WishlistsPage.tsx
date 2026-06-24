@@ -6,6 +6,7 @@ import { WishlistItemDrawer } from "@/components/wishlist/WishlistItemDrawer";
 import { CategoryIcon } from "@/components/wishlist/categories";
 import { formatINR } from "@/components/wishlist/money";
 import { useWishlists, useWishlist, useDeleteWishlist } from "@/hooks/useWishlists";
+import { TodosBoard } from "@/components/todo/TodosBoard";
 import type { Wishlist, WishlistItem } from "@/types";
 
 function WishlistColumn({
@@ -145,6 +146,11 @@ export function WishlistsPage({ onSelectWishlist }: { onSelectWishlist: (id: str
           ))}
         </div>
       )}
+
+      <div className="mt-10">
+        <h1 className="font-display text-2xl font-bold mb-6">Lists</h1>
+        <TodosBoard />
+      </div>
 
       <WishlistDialog
         open={listDialog.open}
