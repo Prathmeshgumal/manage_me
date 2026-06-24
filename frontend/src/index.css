@@ -74,9 +74,8 @@
     vertical-align: middle;
     width: 1em;
     height: 1em;
-    accent-color: #0969da;
+    accent-color: #e5484d;
   }
-  .dark .markdown-body li.task-list-item input[type="checkbox"] { accent-color: #58a6ff; }
 
   /* Inline code chips */
   .markdown-body :not(pre) > code {
