@@ -17,10 +17,12 @@ import { WishlistsPage } from "@/components/wishlist/WishlistsPage";
 import { WishlistView } from "@/components/wishlist/WishlistView";
 import { ListsPage } from "@/components/todo/ListsPage";
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { useTasks } from "@/hooks/useTasks";
+import { useTasks, useTask } from "@/hooks/useTasks";
+import { useWishlistItem } from "@/hooks/useWishlists";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthPage } from "@/pages/AuthPage";
 import type { DueBucket } from "@/lib/dueDate";
+import { parseHash, routeToHash, type Route } from "@/lib/appRoute";
 
 type Page = "tasks" | "settings" | "project-settings" | "library" | "wishlists" | "wishlist" | "lists";
 
@@ -30,7 +32,12 @@ export default function App() {
   const [groupBy, setGroupBy] = useState<GroupBy>("status");
   const [dueFilter, setDueFilter] = useState<DueBucket | "ALL">("ALL");
   const [projectId, setProjectId] = useState<string | null>(null);
-  const [libraryBookId, setLibraryBookId] = useState<string | null>(null);
+  // `libraryRoute` is where the user currently is inside the library (reflected
+  // in the URL); `libraryTarget` is a one-shot command telling LibraryPage where
+  // to navigate (rail click / deep link). A fresh object is set each time so the
+  // effect re-fires even for the same destination.
+  const [libraryRoute, setLibraryRoute] = useState<Route>({ kind: "library" });
+  const [libraryTarget, setLibraryTarget] = useState<Route>({ kind: "library" });
   const [wishlistId, setWishlistId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => localStorage.getItem("sidebarCollapsed") === "true",
@@ -39,6 +46,10 @@ export default function App() {
   const [createOpen, setCreateOpen] = useState(false);
   const [createDefaults, setCreateDefaults] = useState<CreateDefaults>({});
   const [openTask, setOpenTask] = useState<Task | null>(null);
+  const [wishlistItemId, setWishlistItemId] = useState<string | null>(null);
+  const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
+  const [pendingItemId, setPendingItemId] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   const { toggle } = useTheme();
   const { status } = useAuth();
@@ -80,6 +91,83 @@ export default function App() {
       history.replaceState(null, "", location.pathname);
     }
   }, []);
+
+  // --- Deep linking: hash <-> view state -------------------------------------
+
+  // Apply a parsed route to the view state. Task / wishlist-item routes only
+  // record a "pending" id here; the data is fetched below, then the panel opens.
+  function applyRoute(route: Route | null) {
+    const r: Route = route ?? { kind: "tasks" };
+    switch (r.kind) {
+      case "tasks": setOpenTask(null); setProjectId(null); setPage("tasks"); break;
+      case "project": setOpenTask(null); setProjectId(r.id); setPage("tasks"); break;
+      case "project-settings": setProjectId(r.id); setPage("project-settings"); break;
+      case "task": setPendingTaskId(r.id); break;
+      case "library": setLibraryRoute({ kind: "library" }); setLibraryTarget({ kind: "library" }); setPage("library"); break;
+      case "book": setLibraryRoute({ kind: "book", id: r.id }); setLibraryTarget({ kind: "book", id: r.id }); setPage("library"); break;
+      case "page": setLibraryRoute({ kind: "page", id: r.id }); setLibraryTarget({ kind: "page", id: r.id }); setPage("library"); break;
+      case "wishlists": setPage("wishlists"); break;
+      case "wishlist": setWishlistId(r.id); setWishlistItemId(null); setPage("wishlist"); break;
+      case "wishlist-item": setPendingItemId(r.id); break;
+      case "lists": setPage("lists"); break;
+      case "settings": setPage("settings"); break;
+    }
+  }
+
+  // On mount + back/forward: parse the hash and apply it. replaceState (used for
+  // writing below) does not emit hashchange, so this only fires on real
+  // navigations and user link clicks.
+  useEffect(() => {
+    const apply = () => applyRoute(parseHash(window.location.hash));
+    apply();
+    setHydrated(true);
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Resolve a pending task deep-link: fetch it, open its board + detail panel.
+  const { data: resolvedTask } = useTask(pendingTaskId);
+  useEffect(() => {
+    if (!resolvedTask) return;
+    setProjectId(resolvedTask.projectId ?? null);
+    setPage("tasks");
+    setOpenTask(resolvedTask);
+    setPendingTaskId(null);
+  }, [resolvedTask]);
+
+  // Resolve a pending wishlist-item deep-link: fetch it, open its wishlist + drawer.
+  const { data: resolvedItem } = useWishlistItem(pendingItemId ?? "");
+  useEffect(() => {
+    if (!resolvedItem) return;
+    setWishlistId(resolvedItem.wishlistId);
+    setWishlistItemId(resolvedItem.id);
+    setPage("wishlist");
+    setPendingItemId(null);
+  }, [resolvedItem]);
+
+  // Derive the current route from view state (openTask wins when a task is open).
+  const currentRoute: Route =
+    openTask ? { kind: "task", id: openTask.id }
+    : page === "project-settings" && projectId ? { kind: "project-settings", id: projectId }
+    : page === "tasks" ? (projectId ? { kind: "project", id: projectId } : { kind: "tasks" })
+    : page === "library" ? libraryRoute
+    : page === "wishlists" ? { kind: "wishlists" }
+    : page === "wishlist" && wishlistId ? { kind: "wishlist", id: wishlistId }
+    : page === "lists" ? { kind: "lists" }
+    : page === "settings" ? { kind: "settings" }
+    : { kind: "tasks" };
+  const currentHash = routeToHash(currentRoute);
+
+  // Reflect the view into the address bar. Hold off until the initial hash has
+  // been applied and while a deep-link fetch is still pending, so we never
+  // clobber an incoming link before it resolves.
+  useEffect(() => {
+    if (!hydrated || pendingTaskId || pendingItemId) return;
+    if (window.location.hash !== currentHash) {
+      window.history.replaceState(null, "", currentHash);
+    }
+  }, [hydrated, currentHash, pendingTaskId, pendingItemId]);
 
   if (status === "loading") {
     return <div className="min-h-screen flex items-center justify-center text-ink-muted">Loading…</div>;
@@ -138,11 +226,11 @@ export default function App() {
           {page === "settings" ? (
             <SettingsPage />
           ) : page === "library" ? (
-            <LibraryPage projectId={projectId} initialBookId={libraryBookId} onBack={() => setPage("tasks")} />
+            <LibraryPage projectId={projectId} target={libraryTarget} onRoute={setLibraryRoute} onBack={() => setPage("tasks")} />
           ) : page === "wishlists" ? (
             <WishlistsPage onSelectWishlist={(id) => { setWishlistId(id); setPage("wishlist"); }} />
           ) : page === "wishlist" && wishlistId ? (
-            <WishlistView id={wishlistId} onBack={() => setPage("wishlists")} />
+            <WishlistView id={wishlistId} initialItemId={wishlistItemId} onBack={() => setPage("wishlists")} />
           ) : page === "lists" ? (
             <ListsPage />
           ) : page === "project-settings" && projectId ? (
@@ -150,7 +238,7 @@ export default function App() {
               projectId={projectId}
               onBack={() => setPage("tasks")}
               onDeleted={() => { setProjectId(null); setPage("tasks"); }}
-              onOpenBook={(bookId) => { setLibraryBookId(bookId); setPage("library"); }}
+              onOpenBook={(bookId) => { setLibraryRoute({ kind: "book", id: bookId }); setLibraryTarget({ kind: "book", id: bookId }); setPage("library"); }}
             />
           ) : view === "board" ? (
             <BoardView
@@ -167,7 +255,7 @@ export default function App() {
       </main>
 
       <LibraryRail
-        onOpenShelf={() => { setLibraryBookId(null); setPage("library"); }}
+        onOpenShelf={() => { setLibraryRoute({ kind: "library" }); setLibraryTarget({ kind: "library" }); setPage("library"); }}
         onOpenWishlists={() => setPage("wishlists")}
         onOpenLists={() => setPage("lists")}
         shelfActive={page === "library"}

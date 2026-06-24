@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, ArrowLeft, Trash2, Pencil, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWishlist, useUpdateWishlistItem, useDeleteWishlistItem } from "@/hooks/useWishlists";
 import { WishlistItemDrawer } from "@/components/wishlist/WishlistItemDrawer";
 import { CategoryIcon } from "@/components/wishlist/categories";
+import { CopyLinkButton } from "@/components/ui/CopyLinkButton";
 import { formatINR } from "@/components/wishlist/money";
 import { cn } from "@/lib/utils";
 import type { WishlistItem, WishlistItemStatus, WishlistItemPriority } from "@/types";
@@ -118,15 +119,26 @@ function WishlistItemCard({
 export function WishlistView({
   id,
   onBack,
+  initialItemId,
 }: {
   id: string;
   onBack: () => void;
+  initialItemId?: string | null;
 }) {
   const [selectedItem, setSelectedItem] = useState<WishlistItem | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filter, setFilter] = useState<WishlistItemStatus | "ALL">("ALL");
 
   const { data: wishlist, isLoading } = useWishlist(id);
+
+  useEffect(() => {
+    if (!initialItemId || !wishlist) return;
+    const match = wishlist.items.find((i) => i.id === initialItemId);
+    if (match) {
+      setSelectedItem(match);
+      setDrawerOpen(true);
+    }
+  }, [initialItemId, wishlist]);
   const updateItem = useUpdateWishlistItem();
   const deleteItem = useDeleteWishlistItem();
 
@@ -155,7 +167,10 @@ export function WishlistView({
           </span>
         </div>
         <div>
-          <h1 className="font-display text-2xl font-bold">{wishlist.name}</h1>
+          <div className="flex items-center gap-1">
+            <h1 className="font-display text-2xl font-bold">{wishlist.name}</h1>
+            <CopyLinkButton route={{ kind: "wishlist", id: wishlist.id }} />
+          </div>
           {wishlist.description && (
             <p className="text-sm text-ink-muted">{wishlist.description}</p>
           )}

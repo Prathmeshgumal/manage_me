@@ -7,6 +7,7 @@ import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
+import { CopyLinkButton } from "@/components/ui/CopyLinkButton";
 import type { Task, Status, Priority, UpdateTaskInput } from "@/types";
 import { statusMeta, priorityMeta, STATUS_ORDER, PRIORITY_ORDER } from "@/lib/priority";
 import { useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
@@ -50,7 +51,10 @@ export function TaskDetailPanel({ task, open, onOpenChange }: {
         className="mx-auto max-w-3xl rounded-t-2xl h-[90vh] overflow-y-auto flex flex-col gap-4"
       >
         <SheetHeader className="p-0">
-          <SheetTitle className="font-mono text-xs text-ink-muted text-left">{task.identifier}</SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="font-mono text-xs text-ink-muted text-left">{task.identifier}</SheetTitle>
+            <CopyLinkButton route={{ kind: "task", id: task.id }} />
+          </div>
         </SheetHeader>
 
         <Input

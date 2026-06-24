@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Markdown } from "@/components/ui/markdown";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Button } from "@/components/ui/button";
+import { CopyLinkButton } from "@/components/ui/CopyLinkButton";
 import { usePage, useUpdatePage, useDeletePage } from "@/hooks/useLibrary";
 
 export function PageEditor({ pageId, bookId, onDeleted }: {
@@ -31,6 +32,7 @@ export function PageEditor({ pageId, bookId, onDeleted }: {
           onChange={(e) => setTitle(e.target.value)}
           onBlur={() => title.trim() && title.trim() !== page.title && update.mutate({ id: page.id, patch: { title: title.trim() } })}
         />
+        <CopyLinkButton route={{ kind: "page", id: page.id }} />
         <Button variant="ghost" size="icon" aria-label="Delete page"
           onClick={() => del.mutate(page.id, { onSuccess: onDeleted })}>
           <Trash2 className="size-4" />

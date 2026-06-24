@@ -6,6 +6,7 @@ import { WishlistItemDrawer } from "@/components/wishlist/WishlistItemDrawer";
 import { CategoryIcon } from "@/components/wishlist/categories";
 import { formatINR } from "@/components/wishlist/money";
 import { useWishlists, useWishlist, useDeleteWishlist } from "@/hooks/useWishlists";
+import { CopyLinkButton } from "@/components/ui/CopyLinkButton";
 import type { Wishlist, WishlistItem } from "@/types";
 
 function WishlistColumn({
@@ -120,7 +121,10 @@ export function WishlistsPage({ onSelectWishlist }: { onSelectWishlist: (id: str
   return (
     <div className="p-2">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-2xl font-bold">Wishlists</h1>
+        <div className="flex items-center gap-1">
+          <h1 className="font-display text-2xl font-bold">Wishlists</h1>
+          <CopyLinkButton />
+        </div>
         <Button onClick={() => setListDialog({ open: true, editing: null })}>
           <Plus className="size-4 mr-1" /> New Wishlist
         </Button>

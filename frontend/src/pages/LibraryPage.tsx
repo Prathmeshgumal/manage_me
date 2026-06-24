@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, ChevronRight, ChevronDown, Trash2, Library } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useShelf, useBook, useDeleteBook, useCreateBook, useOrphanShelves, useShelfById } from "@/hooks/useLibrary";
+import { useShelf, useBook, useDeleteBook, useCreateBook, useOrphanShelves, useShelfById, usePage } from "@/hooks/useLibrary";
 import { BookList } from "@/components/library/BookList";
 import { BookShelf } from "@/components/library/BookShelf";
 import { randomBookColor } from "@/lib/bookColors";
 import { PageList } from "@/components/library/PageList";
 import { PageEditor } from "@/components/library/PageEditor";
+import { CopyLinkButton } from "@/components/ui/CopyLinkButton";
+import { type Route } from "@/lib/appRoute";
 
 type Nav = {
   level: "shelf" | "orphan" | "book" | "page";
@@ -15,8 +17,14 @@ type Nav = {
   orphanShelfId?: string;
 };
 
-export function LibraryPage({ projectId, initialBookId, onBack }: {
-  projectId: string | null; initialBookId?: string | null; onBack: () => void;
+function navToRoute(nav: Nav): Route {
+  if (nav.level === "page" && nav.pageId) return { kind: "page", id: nav.pageId };
+  if (nav.level === "book" && nav.bookId) return { kind: "book", id: nav.bookId };
+  return { kind: "library" };
+}
+
+export function LibraryPage({ projectId, target, onBack, onRoute }: {
+  projectId: string | null; target?: Route | null; onBack: () => void; onRoute?: (route: Route) => void;
 }) {
   const isGeneral = projectId === null;
   const { data: shelf } = useShelf(projectId);
@@ -24,11 +32,30 @@ export function LibraryPage({ projectId, initialBookId, onBack }: {
   const deleteBook = useDeleteBook(projectId);
   const createBook = useCreateBook(projectId);
   const [nav, setNav] = useState<Nav>(
-    initialBookId ? { level: "book", bookId: initialBookId } : { level: "shelf" },
+    target?.kind === "book" ? { level: "book", bookId: target.id } : { level: "shelf" },
   );
   const [showList, setShowList] = useState(false);
   const { data: book } = useBook(nav.bookId ?? null);
   const { data: orphanShelf } = useShelfById(nav.orphanShelfId ?? null);
+
+  // A `page` deep-link only knows the page id; fetch it to learn its book.
+  const { data: targetPage } = usePage(target?.kind === "page" ? target.id : null);
+
+  // Apply an incoming navigation command (rail click / deep link / hashchange).
+  useEffect(() => {
+    if (target?.kind === "book") setNav({ level: "book", bookId: target.id });
+    else if (target?.kind === "library") setNav({ level: "shelf" });
+    // `page` targets are applied once `targetPage` resolves (below).
+  }, [target]);
+
+  useEffect(() => {
+    if (targetPage) setNav({ level: "page", bookId: targetPage.bookId, pageId: targetPage.id });
+  }, [targetPage]);
+
+  // Report the current location upward so the address bar/URL stays in sync.
+  useEffect(() => {
+    onRoute?.(navToRoute(nav));
+  }, [nav, onRoute]);
 
   if (!shelf) return <div className="p-6 text-sm text-ink-muted">Loading library…</div>;
 
@@ -37,9 +64,12 @@ export function LibraryPage({ projectId, initialBookId, onBack }: {
 
   return (
     <div className="max-w-6xl p-6 flex flex-col gap-6">
-      <button className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink w-fit" onClick={onBack}>
-        <ArrowLeft className="size-4" /> Back to board
-      </button>
+      <div className="flex items-center justify-between">
+        <button className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink w-fit" onClick={onBack}>
+          <ArrowLeft className="size-4" /> Back to board
+        </button>
+        {nav.level === "shelf" && <CopyLinkButton />}
+      </div>
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-1 text-sm flex-wrap">
@@ -137,7 +167,10 @@ export function LibraryPage({ projectId, initialBookId, onBack }: {
       {nav.level === "book" && book && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <span className="font-display text-lg font-bold">{book.name}</span>
+            <div className="flex items-center gap-1">
+              <span className="font-display text-lg font-bold">{book.name}</span>
+              <CopyLinkButton route={{ kind: "book", id: book.id }} />
+            </div>
             <Button variant="ghost" size="sm" className="gap-1" onClick={() => deleteBook.mutate(book.id, { onSuccess: () => setNav(backFromBook()) })}>
               <Trash2 className="size-4" /> Delete book
             </Button>

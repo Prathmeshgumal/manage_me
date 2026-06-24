@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
+import { CopyLinkButton } from "@/components/ui/CopyLinkButton";
 import { useCreateWishlistItem, useUpdateWishlistItem } from "@/hooks/useWishlists";
 import { CURRENCY } from "@/components/wishlist/money";
 import type { WishlistItem, WishlistItemStatus, WishlistItemPriority } from "@/types";
@@ -85,7 +86,10 @@ export function WishlistItemDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>{isEditing ? "Edit Item" : "New Item"}</SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle>{isEditing ? "Edit Item" : "New Item"}</SheetTitle>
+            {isEditing && item && <CopyLinkButton route={{ kind: "wishlist-item", id: item.id }} />}
+          </div>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
           <div>
