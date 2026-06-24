@@ -1,6 +1,9 @@
 // Pure text transforms for the markdown toolbar. Each takes the current textarea
 // state (value + selection) and returns the new value plus where the selection
 // should land, so the editor can restore focus naturally after applying.
+//
+// All commands toggle: applying one to already-formatted text removes the
+// formatting instead of stacking it.
 
 export interface TextState {
   value: string;
@@ -16,14 +19,36 @@ export function isUrl(text: string): boolean {
   return URL_RE.test(text.trim());
 }
 
-/** Wrap the selection with `before`/`after`. With no selection, insert a
- *  placeholder and select it so the user can type over it. */
+/** Wrap the selection with `before`/`after`, or unwrap if it's already wrapped
+ *  (markers inside or immediately surrounding the selection). With no selection,
+ *  insert a placeholder and select it so the user can type over it. */
 export function wrapInline(s: TextState, before: string, after: string, placeholder: string): EditResult {
   const { value, selectionStart, selectionEnd } = s;
   const selected = value.slice(selectionStart, selectionEnd);
+
+  // Unwrap: markers are part of the selection.
+  if (
+    selected.length >= before.length + after.length &&
+    selected.startsWith(before) &&
+    selected.endsWith(after)
+  ) {
+    const inner = selected.slice(before.length, selected.length - after.length);
+    const next = value.slice(0, selectionStart) + inner + value.slice(selectionEnd);
+    return { value: next, selectionStart, selectionEnd: selectionStart + inner.length };
+  }
+
+  // Unwrap: markers sit just outside the selection.
+  const outerBefore = value.slice(Math.max(0, selectionStart - before.length), selectionStart);
+  const outerAfter = value.slice(selectionEnd, selectionEnd + after.length);
+  if (selected.length > 0 && outerBefore === before && outerAfter === after) {
+    const next = value.slice(0, selectionStart - before.length) + selected + value.slice(selectionEnd + after.length);
+    const start = selectionStart - before.length;
+    return { value: next, selectionStart: start, selectionEnd: start + selected.length };
+  }
+
+  // Wrap.
   const inner = selected || placeholder;
   const next = value.slice(0, selectionStart) + before + inner + after + value.slice(selectionEnd);
-  // Select the inner text (the wrapped content), ready to overwrite or extend.
   const start = selectionStart + before.length;
   return { value: next, selectionStart: start, selectionEnd: start + inner.length };
 }
@@ -39,14 +64,24 @@ export function toggleCode(s: TextState): EditResult {
 }
 
 /** `[text](url)` — selection becomes the link text; the url is selected so the
- *  user can paste/type it immediately. */
+ *  user can paste/type it immediately. Toggling an existing `[text](url)` (when
+ *  the selection covers it) unwraps it back to plain `text`. */
 export function insertLink(s: TextState): EditResult {
   const { value, selectionStart, selectionEnd } = s;
-  const text = value.slice(selectionStart, selectionEnd) || "text";
+  const selected = value.slice(selectionStart, selectionEnd);
+
+  // Unwrap a fully-selected markdown link back to its text.
+  const linkMatch = /^\[([^\]]*)\]\([^)]*\)$/.exec(selected);
+  if (linkMatch) {
+    const text = linkMatch[1];
+    const next = value.slice(0, selectionStart) + text + value.slice(selectionEnd);
+    return { value: next, selectionStart, selectionEnd: selectionStart + text.length };
+  }
+
+  const text = selected || "text";
   const urlPlaceholder = "url";
   const snippet = `[${text}](${urlPlaceholder})`;
   const next = value.slice(0, selectionStart) + snippet + value.slice(selectionEnd);
-  // Select the "url" placeholder inside the parentheses.
   const urlStart = selectionStart + text.length + 3; // "[" + text + "](" => +1 +len +2
   return { value: next, selectionStart: urlStart, selectionEnd: urlStart + urlPlaceholder.length };
 }
@@ -59,27 +94,32 @@ function lineRange(value: string, start: number, end: number): { from: number; t
   return { from, to };
 }
 
-/** Prefix every selected line. `dynamic` lets ordered lists number each line. */
-export function prefixLines(
+/** Toggle a line prefix across every selected line. When all lines already
+ *  match `pattern`, the prefix is stripped; otherwise it's added. `prefix` may
+ *  be a function so ordered lists can number each line. */
+function toggleLines(
   s: TextState,
   prefix: string | ((index: number) => string),
+  pattern: RegExp,
 ): EditResult {
   const { value, selectionStart, selectionEnd } = s;
   const { from, to } = lineRange(value, selectionStart, selectionEnd);
   const block = value.slice(from, to);
   const lines = block.split("\n");
-  const prefixed = lines.map((line, i) => (typeof prefix === "function" ? prefix(i) : prefix) + line);
-  const nextBlock = prefixed.join("\n");
+  const allMatch = lines.every((line) => pattern.test(line));
+  const nextLines = allMatch
+    ? lines.map((line) => line.replace(pattern, ""))
+    : lines.map((line, i) => (typeof prefix === "function" ? prefix(i) : prefix) + line);
+  const nextBlock = nextLines.join("\n");
   const next = value.slice(0, from) + nextBlock + value.slice(to);
-  // Select the whole transformed block.
   return { value: next, selectionStart: from, selectionEnd: from + nextBlock.length };
 }
 
-export const heading = (s: TextState): EditResult => prefixLines(s, "### ");
-export const quote = (s: TextState): EditResult => prefixLines(s, "> ");
-export const unorderedList = (s: TextState): EditResult => prefixLines(s, "- ");
-export const taskList = (s: TextState): EditResult => prefixLines(s, "- [ ] ");
-export const orderedList = (s: TextState): EditResult => prefixLines(s, (i) => `${i + 1}. `);
+export const heading = (s: TextState): EditResult => toggleLines(s, "### ", /^#{1,6} /);
+export const quote = (s: TextState): EditResult => toggleLines(s, "> ", /^> ?/);
+export const unorderedList = (s: TextState): EditResult => toggleLines(s, "- ", /^[-*] /);
+export const taskList = (s: TextState): EditResult => toggleLines(s, "- [ ] ", /^[-*] \[[ xX]\] /);
+export const orderedList = (s: TextState): EditResult => toggleLines(s, (i) => `${i + 1}. `, /^\d+\. /);
 
 /** When a URL is pasted over a non-empty selection, turn it into a link.
  *  Returns null when it shouldn't apply (no selection, or not a URL). */
