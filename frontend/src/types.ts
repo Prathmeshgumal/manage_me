@@ -207,3 +207,58 @@ export interface UpdateWishlistItemInput {
   targetDate?: string | null;
   sortOrder?: number;
 }
+
+export interface TodoList {
+  id: string;
+  name: string;
+  color: string;
+  sortOrder: number;
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TodoListDetail extends TodoList {
+  items: TodoItem[];
+}
+
+export interface TodoItem {
+  id: string;
+  listId: string;
+  title: string;
+  notes: string | null;
+  completed: boolean;
+  completedAt: string | null;
+  dueDate: string | null;
+  starred: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTodoListInput {
+  name: string;
+  color?: string;
+}
+
+export interface UpdateTodoListInput {
+  name?: string;
+  color?: string;
+  sortOrder?: number;
+}
+
+export interface CreateTodoItemInput {
+  title: string;
+  notes?: string | null;
+  dueDate?: string | null;
+}
+
+export interface UpdateTodoItemInput {
+  title?: string;
+  notes?: string | null;
+  completed?: boolean;
+  dueDate?: string | null;
+  starred?: boolean;
+  sortOrder?: number;
+  listId?: string;
+}
