@@ -8,6 +8,7 @@ import { useGithubStatus, useRepositories } from "@/hooks/useGithub";
 import { useShelf } from "@/hooks/useLibrary";
 import { RepoFileBrowser } from "@/components/github/RepoFileBrowser";
 import { BookList } from "@/components/library/BookList";
+import { CopyLinkButton } from "@/components/ui/CopyLinkButton";
 import { cn } from "@/lib/utils";
 
 const SWATCHES = ["#4FA3D1", "#E0B341", "#F5872B", "#F4404A", "#8A8A86", "#7C5CFC", "#3FB68B"];
@@ -74,9 +75,12 @@ export function ProjectSettingsPage({ projectId, onBack, onDeleted, onOpenBook }
 
   return (
     <div className="max-w-6xl p-6 flex flex-col gap-6">
-      <button className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink w-fit" onClick={onBack}>
-        <ArrowLeft className="size-4" /> Back to board
-      </button>
+      <div className="flex items-center justify-between">
+        <button className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink w-fit" onClick={onBack}>
+          <ArrowLeft className="size-4" /> Back to board
+        </button>
+        <CopyLinkButton route={{ kind: "project-settings", id: projectId }} />
+      </div>
 
       <div className="flex items-center gap-3">
         <span className="size-3 rounded-full" style={{ background: project.color }} />

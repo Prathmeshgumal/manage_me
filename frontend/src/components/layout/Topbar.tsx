@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DUE_BUCKET_ORDER, dueBucketMeta, type DueBucket } from "@/lib/dueDate";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { CopyLinkButton } from "@/components/ui/CopyLinkButton";
 import { cn } from "@/lib/utils";
 
 export type ViewMode = "board" | "list";
@@ -58,6 +59,7 @@ export function Topbar({ view, onView, groupBy, onGroupBy, dueFilter, onDueFilte
             </Button>
           )}
         </div>
+        <CopyLinkButton className="shrink-0 size-9" />
         <Button variant="ghost" size="icon" onClick={onOpenPalette} aria-label="Search (Cmd+K)" className="shrink-0">
           <Search className="size-4" />
         </Button>

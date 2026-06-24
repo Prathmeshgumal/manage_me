@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useWishlist, useUpdateWishlistItem, useDeleteWishlistItem } from "@/hooks/useWishlists";
 import { WishlistItemDrawer } from "@/components/wishlist/WishlistItemDrawer";
 import { CategoryIcon } from "@/components/wishlist/categories";
+import { CopyLinkButton } from "@/components/ui/CopyLinkButton";
 import { formatINR } from "@/components/wishlist/money";
 import { cn } from "@/lib/utils";
 import type { WishlistItem, WishlistItemStatus, WishlistItemPriority } from "@/types";
@@ -166,7 +167,10 @@ export function WishlistView({
           </span>
         </div>
         <div>
-          <h1 className="font-display text-2xl font-bold">{wishlist.name}</h1>
+          <div className="flex items-center gap-1">
+            <h1 className="font-display text-2xl font-bold">{wishlist.name}</h1>
+            <CopyLinkButton route={{ kind: "wishlist", id: wishlist.id }} />
+          </div>
           {wishlist.description && (
             <p className="text-sm text-ink-muted">{wishlist.description}</p>
           )}

@@ -7,6 +7,7 @@ import { BookShelf } from "@/components/library/BookShelf";
 import { randomBookColor } from "@/lib/bookColors";
 import { PageList } from "@/components/library/PageList";
 import { PageEditor } from "@/components/library/PageEditor";
+import { CopyLinkButton } from "@/components/ui/CopyLinkButton";
 
 type Nav = {
   level: "shelf" | "orphan" | "book" | "page";
@@ -37,9 +38,12 @@ export function LibraryPage({ projectId, initialBookId, onBack }: {
 
   return (
     <div className="max-w-6xl p-6 flex flex-col gap-6">
-      <button className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink w-fit" onClick={onBack}>
-        <ArrowLeft className="size-4" /> Back to board
-      </button>
+      <div className="flex items-center justify-between">
+        <button className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink w-fit" onClick={onBack}>
+          <ArrowLeft className="size-4" /> Back to board
+        </button>
+        {nav.level === "shelf" && <CopyLinkButton />}
+      </div>
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-1 text-sm flex-wrap">
@@ -137,7 +141,10 @@ export function LibraryPage({ projectId, initialBookId, onBack }: {
       {nav.level === "book" && book && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <span className="font-display text-lg font-bold">{book.name}</span>
+            <div className="flex items-center gap-1">
+              <span className="font-display text-lg font-bold">{book.name}</span>
+              <CopyLinkButton route={{ kind: "book", id: book.id }} />
+            </div>
             <Button variant="ghost" size="sm" className="gap-1" onClick={() => deleteBook.mutate(book.id, { onSuccess: () => setNav(backFromBook()) })}>
               <Trash2 className="size-4" /> Delete book
             </Button>
