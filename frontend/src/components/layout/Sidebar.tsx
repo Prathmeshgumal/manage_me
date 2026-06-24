@@ -5,7 +5,7 @@ import { ProjectDialog } from "@/components/project/ProjectDialog";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({ page, selectedProjectId, onSelectProject, collapsed, onToggle, onOpenTasks, onOpenSettings, onSelectProjectRow }: {
-  page: "tasks" | "settings" | "project-settings" | "library" | "wishlists" | "wishlist";
+  page: "tasks" | "settings" | "project-settings" | "library" | "wishlists" | "wishlist" | "lists";
   selectedProjectId: string | null;
   onSelectProject: (id: string | null) => void;
   collapsed: boolean;

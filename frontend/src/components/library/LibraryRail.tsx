@@ -1,11 +1,13 @@
-import { Library, ShoppingBag } from "lucide-react";
+import { Library, ShoppingBag, ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function LibraryRail({ onOpenShelf, onOpenWishlists, shelfActive, wishlistActive }: {
+export function LibraryRail({ onOpenShelf, onOpenWishlists, onOpenLists, shelfActive, wishlistActive, listsActive }: {
   onOpenShelf: () => void;
   onOpenWishlists: () => void;
+  onOpenLists: () => void;
   shelfActive?: boolean;
   wishlistActive?: boolean;
+  listsActive?: boolean;
 }) {
   const itemClass = "flex flex-col items-center gap-1 w-full py-3 text-[11px] hover:bg-bg";
   return (
@@ -21,6 +23,12 @@ export function LibraryRail({ onOpenShelf, onOpenWishlists, shelfActive, wishlis
         onClick={onOpenWishlists}
       >
         <ShoppingBag className="size-5" /> Wishlist
+      </button>
+      <button
+        className={cn(itemClass, listsActive ? "text-ink bg-bg font-medium" : "text-ink-muted hover:text-ink")}
+        onClick={onOpenLists}
+      >
+        <ListChecks className="size-5" /> Lists
       </button>
     </div>
   );
