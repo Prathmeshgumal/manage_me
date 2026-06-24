@@ -69,7 +69,14 @@
   .markdown-body ul:has(> li > input[type="checkbox"]),
   .markdown-body ul.contains-task-list { list-style: none; padding-left: 0.25rem; }
   .markdown-body li.task-list-item { padding-left: 0; }
-  .markdown-body li.task-list-item input[type="checkbox"] { margin-right: 0.5em; vertical-align: middle; }
+  .markdown-body li.task-list-item input[type="checkbox"] {
+    margin-right: 0.5em;
+    vertical-align: middle;
+    width: 1em;
+    height: 1em;
+    accent-color: #0969da;
+  }
+  .dark .markdown-body li.task-list-item input[type="checkbox"] { accent-color: #58a6ff; }
 
   /* Inline code chips */
   .markdown-body :not(pre) > code {
