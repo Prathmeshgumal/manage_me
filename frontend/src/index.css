@@ -39,6 +39,27 @@
   .markdown-body > :first-child { margin-top: 0; }
   .markdown-body > :last-child { margin-bottom: 0; }
 
+  /* GitHub-like density: prose/prose-sm defaults are too airy (loose
+     line-height and stacked paragraph margins). Match GitHub's spacing. */
+  .markdown-body { line-height: 1.5; }
+  .markdown-body p,
+  .markdown-body blockquote,
+  .markdown-body ul,
+  .markdown-body ol,
+  .markdown-body pre,
+  .markdown-body table { margin-top: 0; margin-bottom: 0.75rem; }
+  .markdown-body h1,
+  .markdown-body h2,
+  .markdown-body h3,
+  .markdown-body h4,
+  .markdown-body h5,
+  .markdown-body h6 { margin-top: 1.25rem; margin-bottom: 0.6rem; line-height: 1.25; }
+  .markdown-body li { margin-top: 0.15rem; margin-bottom: 0.15rem; }
+  .markdown-body li > p { margin-bottom: 0.25rem; }
+  /* Tighten nested lists so sub-items hug their parent. */
+  .markdown-body li > ul,
+  .markdown-body li > ol { margin-top: 0.15rem; margin-bottom: 0; }
+
   /* GitHub blue links */
   .markdown-body a { color: #0969da; text-decoration: none; font-weight: 500; }
   .markdown-body a:hover { text-decoration: underline; }
@@ -48,7 +69,36 @@
   .markdown-body ul:has(> li > input[type="checkbox"]),
   .markdown-body ul.contains-task-list { list-style: none; padding-left: 0.25rem; }
   .markdown-body li.task-list-item { padding-left: 0; }
-  .markdown-body li.task-list-item input[type="checkbox"] { margin-right: 0.5em; vertical-align: middle; }
+  /* GFM renders task checkboxes as `disabled`, which browsers force-gray
+     (ignoring accent-color). Draw our own so the checked state is reliably red. */
+  .markdown-body li.task-list-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    margin-right: 0.5em;
+    vertical-align: middle;
+    width: 1em;
+    height: 1em;
+    border: 1px solid var(--border);
+    border-radius: 0.25em;
+    position: relative;
+    opacity: 1;
+    cursor: default;
+  }
+  .markdown-body li.task-list-item input[type="checkbox"]:checked {
+    background: #e5484d;
+    border-color: #e5484d;
+  }
+  .markdown-body li.task-list-item input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 0.3em;
+    top: 0.12em;
+    width: 0.22em;
+    height: 0.48em;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
 
   /* Inline code chips */
   .markdown-body :not(pre) > code {
