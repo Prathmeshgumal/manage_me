@@ -16,6 +16,14 @@ export function useTasks(filter?: TaskFilter) {
   return useQuery({ queryKey: tasksKey(filter), queryFn: () => api.get<Task[]>(`/tasks${qs(filter)}`) });
 }
 
+export function useTask(id: string | null) {
+  return useQuery({
+    queryKey: ["task", id],
+    queryFn: () => api.get<Task>(`/tasks/${id}`),
+    enabled: !!id,
+  });
+}
+
 export function useCreateTask() {
   const qc = useQueryClient();
   return useMutation({
