@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, ArrowLeft, Trash2, Pencil, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWishlist, useUpdateWishlistItem, useDeleteWishlistItem } from "@/hooks/useWishlists";
@@ -118,15 +118,26 @@ function WishlistItemCard({
 export function WishlistView({
   id,
   onBack,
+  initialItemId,
 }: {
   id: string;
   onBack: () => void;
+  initialItemId?: string | null;
 }) {
   const [selectedItem, setSelectedItem] = useState<WishlistItem | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filter, setFilter] = useState<WishlistItemStatus | "ALL">("ALL");
 
   const { data: wishlist, isLoading } = useWishlist(id);
+
+  useEffect(() => {
+    if (!initialItemId || !wishlist) return;
+    const match = wishlist.items.find((i) => i.id === initialItemId);
+    if (match) {
+      setSelectedItem(match);
+      setDrawerOpen(true);
+    }
+  }, [initialItemId, wishlist]);
   const updateItem = useUpdateWishlistItem();
   const deleteItem = useDeleteWishlistItem();
 
