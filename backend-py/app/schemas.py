@@ -142,3 +142,30 @@ class UpdateWishlistItem(CamelModel):
     priority: WishlistItemPriorityEnum | None = None
     target_date: datetime | None = None
     sort_order: float | None = None
+
+
+class CreateTodoList(CamelModel):
+    name: str = Field(min_length=1, max_length=200)
+    color: str = Field(default="#8A8A86", pattern=HEX)
+
+
+class UpdateTodoList(CamelModel):
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    color: str | None = Field(default=None, pattern=HEX)
+    sort_order: float | None = None
+
+
+class CreateTodoItem(CamelModel):
+    title: str = Field(min_length=1, max_length=500)
+    notes: str | None = Field(default=None, max_length=20000)
+    due_date: datetime | None = None
+
+
+class UpdateTodoItem(CamelModel):
+    title: str | None = Field(default=None, min_length=1, max_length=500)
+    notes: str | None = Field(default=None, max_length=20000)
+    completed: bool | None = None
+    due_date: datetime | None = None
+    starred: bool | None = None
+    sort_order: float | None = None
+    list_id: str | None = None
