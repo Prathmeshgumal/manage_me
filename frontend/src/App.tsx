@@ -15,13 +15,14 @@ import { LibraryRail } from "@/components/library/LibraryRail";
 import { LibraryPage } from "@/pages/LibraryPage";
 import { WishlistsPage } from "@/components/wishlist/WishlistsPage";
 import { WishlistView } from "@/components/wishlist/WishlistView";
+import { ListsPage } from "@/components/todo/ListsPage";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { useTasks } from "@/hooks/useTasks";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthPage } from "@/pages/AuthPage";
 import type { DueBucket } from "@/lib/dueDate";
 
-type Page = "tasks" | "settings" | "project-settings" | "library" | "wishlists" | "wishlist";
+type Page = "tasks" | "settings" | "project-settings" | "library" | "wishlists" | "wishlist" | "lists";
 
 export default function App() {
   const [page, setPage] = useState<Page>("tasks");
@@ -116,7 +117,7 @@ export default function App() {
             onOpenProjectSettings={() => setPage("project-settings")}
           />
         )}
-        {!["tasks", "library", "wishlists", "wishlist"].includes(page) && (
+        {!["tasks", "library", "wishlists", "wishlist", "lists"].includes(page) && (
           <header className="h-14 border-b border-border flex items-center px-4 bg-surface">
             {sidebarCollapsed && (
               <button className="p-2 rounded hover:bg-surface-muted mr-2" onClick={toggleSidebar} aria-label="Open sidebar">
@@ -126,7 +127,7 @@ export default function App() {
             <h1 className="font-display text-xl font-bold">{page === "settings" ? "Settings" : "Project Settings"}</h1>
           </header>
         )}
-        {(page === "library" || page === "wishlists" || page === "wishlist") && sidebarCollapsed && (
+        {(page === "library" || page === "wishlists" || page === "wishlist" || page === "lists") && sidebarCollapsed && (
           <header className="h-14 border-b border-border flex items-center px-4 bg-surface">
             <button className="p-2 rounded hover:bg-surface-muted mr-2" onClick={toggleSidebar} aria-label="Open sidebar">
               <PanelLeftOpen className="size-4" />
@@ -142,6 +143,8 @@ export default function App() {
             <WishlistsPage onSelectWishlist={(id) => { setWishlistId(id); setPage("wishlist"); }} />
           ) : page === "wishlist" && wishlistId ? (
             <WishlistView id={wishlistId} onBack={() => setPage("wishlists")} />
+          ) : page === "lists" ? (
+            <ListsPage />
           ) : page === "project-settings" && projectId ? (
             <ProjectSettingsPage
               projectId={projectId}
@@ -166,8 +169,10 @@ export default function App() {
       <LibraryRail
         onOpenShelf={() => { setLibraryBookId(null); setPage("library"); }}
         onOpenWishlists={() => setPage("wishlists")}
+        onOpenLists={() => setPage("lists")}
         shelfActive={page === "library"}
         wishlistActive={page === "wishlists" || page === "wishlist"}
+        listsActive={page === "lists"}
       />
 
       <QuickCreateDialog

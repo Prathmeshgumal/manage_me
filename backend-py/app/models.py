@@ -197,3 +197,29 @@ class WishlistItem(Base):
     sort_order: Mapped[float] = mapped_column("sortOrder", Float, default=0)
     created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
+
+
+class TodoList(Base):
+    __tablename__ = "TodoList"
+    id: Mapped[str] = mapped_column(primary_key=True, default=new_id)
+    name: Mapped[str] = mapped_column(default="My List")
+    color: Mapped[str] = mapped_column(default="#8A8A86")
+    sort_order: Mapped[float] = mapped_column("sortOrder", Float, default=0)
+    workspace_id: Mapped[str] = mapped_column("workspaceId", ForeignKey("Workspace.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
+
+
+class TodoItem(Base):
+    __tablename__ = "TodoItem"
+    id: Mapped[str] = mapped_column(primary_key=True, default=new_id)
+    list_id: Mapped[str] = mapped_column("listId", ForeignKey("TodoList.id", ondelete="CASCADE"))
+    title: Mapped[str]
+    notes: Mapped[str | None]
+    completed: Mapped[bool] = mapped_column(default=False, server_default=sa_false())
+    completed_at: Mapped[datetime | None] = mapped_column("completedAt")
+    due_date: Mapped[datetime | None] = mapped_column("dueDate")
+    starred: Mapped[bool] = mapped_column(default=False, server_default=sa_false())
+    sort_order: Mapped[float] = mapped_column("sortOrder", Float, default=0)
+    created_at: Mapped[datetime] = mapped_column("createdAt", server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column("updatedAt", default=func.now(), onupdate=func.now())
