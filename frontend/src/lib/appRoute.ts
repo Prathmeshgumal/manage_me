@@ -8,6 +8,7 @@ export type Route =
   | { kind: "task"; id: string }
   | { kind: "library" }
   | { kind: "book"; id: string }
+  | { kind: "page"; id: string }
   | { kind: "wishlists" }
   | { kind: "wishlist"; id: string }
   | { kind: "wishlist-item"; id: string }
@@ -22,6 +23,7 @@ export function routeToHash(route: Route): string {
     case "task": return `#/task/${route.id}`;
     case "library": return "#/library";
     case "book": return `#/books/${route.id}`;
+    case "page": return `#/pages/${route.id}`;
     case "wishlists": return "#/wishlists";
     case "wishlist": return `#/wishlists/${route.id}`;
     case "wishlist-item": return `#/wishlist-items/${route.id}`;
@@ -43,6 +45,7 @@ export function parseHash(hash: string): Route | null {
       return null;
     case "library": return parts.length === 1 ? { kind: "library" } : null;
     case "books": return b && parts.length === 2 ? { kind: "book", id: b } : null;
+    case "pages": return b && parts.length === 2 ? { kind: "page", id: b } : null;
     case "wishlists":
       if (parts.length === 1) return { kind: "wishlists" };
       if (b && parts.length === 2) return { kind: "wishlist", id: b };

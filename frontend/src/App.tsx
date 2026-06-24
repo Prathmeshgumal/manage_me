@@ -32,7 +32,12 @@ export default function App() {
   const [groupBy, setGroupBy] = useState<GroupBy>("status");
   const [dueFilter, setDueFilter] = useState<DueBucket | "ALL">("ALL");
   const [projectId, setProjectId] = useState<string | null>(null);
-  const [libraryBookId, setLibraryBookId] = useState<string | null>(null);
+  // `libraryRoute` is where the user currently is inside the library (reflected
+  // in the URL); `libraryTarget` is a one-shot command telling LibraryPage where
+  // to navigate (rail click / deep link). A fresh object is set each time so the
+  // effect re-fires even for the same destination.
+  const [libraryRoute, setLibraryRoute] = useState<Route>({ kind: "library" });
+  const [libraryTarget, setLibraryTarget] = useState<Route>({ kind: "library" });
   const [wishlistId, setWishlistId] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => localStorage.getItem("sidebarCollapsed") === "true",
@@ -98,8 +103,9 @@ export default function App() {
       case "project": setOpenTask(null); setProjectId(r.id); setPage("tasks"); break;
       case "project-settings": setProjectId(r.id); setPage("project-settings"); break;
       case "task": setPendingTaskId(r.id); break;
-      case "library": setLibraryBookId(null); setPage("library"); break;
-      case "book": setLibraryBookId(r.id); setPage("library"); break;
+      case "library": setLibraryRoute({ kind: "library" }); setLibraryTarget({ kind: "library" }); setPage("library"); break;
+      case "book": setLibraryRoute({ kind: "book", id: r.id }); setLibraryTarget({ kind: "book", id: r.id }); setPage("library"); break;
+      case "page": setLibraryRoute({ kind: "page", id: r.id }); setLibraryTarget({ kind: "page", id: r.id }); setPage("library"); break;
       case "wishlists": setPage("wishlists"); break;
       case "wishlist": setWishlistId(r.id); setWishlistItemId(null); setPage("wishlist"); break;
       case "wishlist-item": setPendingItemId(r.id); break;
@@ -145,7 +151,7 @@ export default function App() {
     openTask ? { kind: "task", id: openTask.id }
     : page === "project-settings" && projectId ? { kind: "project-settings", id: projectId }
     : page === "tasks" ? (projectId ? { kind: "project", id: projectId } : { kind: "tasks" })
-    : page === "library" ? (libraryBookId ? { kind: "book", id: libraryBookId } : { kind: "library" })
+    : page === "library" ? libraryRoute
     : page === "wishlists" ? { kind: "wishlists" }
     : page === "wishlist" && wishlistId ? { kind: "wishlist", id: wishlistId }
     : page === "lists" ? { kind: "lists" }
@@ -220,7 +226,7 @@ export default function App() {
           {page === "settings" ? (
             <SettingsPage />
           ) : page === "library" ? (
-            <LibraryPage projectId={projectId} initialBookId={libraryBookId} onBack={() => setPage("tasks")} />
+            <LibraryPage projectId={projectId} target={libraryTarget} onRoute={setLibraryRoute} onBack={() => setPage("tasks")} />
           ) : page === "wishlists" ? (
             <WishlistsPage onSelectWishlist={(id) => { setWishlistId(id); setPage("wishlist"); }} />
           ) : page === "wishlist" && wishlistId ? (
@@ -232,7 +238,7 @@ export default function App() {
               projectId={projectId}
               onBack={() => setPage("tasks")}
               onDeleted={() => { setProjectId(null); setPage("tasks"); }}
-              onOpenBook={(bookId) => { setLibraryBookId(bookId); setPage("library"); }}
+              onOpenBook={(bookId) => { setLibraryRoute({ kind: "book", id: bookId }); setLibraryTarget({ kind: "book", id: bookId }); setPage("library"); }}
             />
           ) : view === "board" ? (
             <BoardView
@@ -249,7 +255,7 @@ export default function App() {
       </main>
 
       <LibraryRail
-        onOpenShelf={() => { setLibraryBookId(null); setPage("library"); }}
+        onOpenShelf={() => { setLibraryRoute({ kind: "library" }); setLibraryTarget({ kind: "library" }); setPage("library"); }}
         onOpenWishlists={() => setPage("wishlists")}
         onOpenLists={() => setPage("lists")}
         shelfActive={page === "library"}

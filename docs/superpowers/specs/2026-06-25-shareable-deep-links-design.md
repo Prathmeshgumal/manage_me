@@ -30,6 +30,7 @@ the existing GitHub-OAuth flow (which reads `location.search` / `location.pathna
 | A task            | `#/task/<id>`                 |
 | Library / shelf   | `#/library`                   |
 | A book            | `#/books/<id>`                |
+| A book page       | `#/pages/<id>`                |
 | Wishlists         | `#/wishlists`                 |
 | A wishlist        | `#/wishlists/<id>`            |
 | A wishlist item   | `#/wishlist-items/<id>`       |
@@ -153,6 +154,14 @@ Placements (each passes the Route for its view):
 ## Out of scope (YAGNI)
 
 - Path-based (non-hash) URLs.
-- Deep-linking to a specific book *page* (only the book itself).
 - Link previews/unfurling, access control on shared links beyond existing auth,
   and a global toast system.
+
+## Library navigation note
+
+The library has internal navigation (shelf → book → page) that LibraryPage owns.
+To keep the URL accurate there, LibraryPage accepts a `target` Route (the
+destination to navigate to, set on rail clicks and deep links) and reports its
+current location back via `onRoute`, which App reflects into the hash. Book-page
+deep links (`#/pages/<id>`) resolve the page by id (`GET /pages/{id}`) to learn
+its book, then open it.
